@@ -36,3 +36,14 @@
     transform: rotate(360deg);
   }
 }
+
+.calendar-container {
+  width: 80%;  /* 幅を指定 */
+  max-width: 1200px;  /* 最大幅 */
+  margin: 0 auto;  /* 中央揃え */
+}
+
+.fc {
+  width: 100%; /* FullCalendar 内部の要素に幅を合わせる */
+}
+
