@@ -47,3 +47,8 @@
   width: 100%; /* FullCalendar 内部の要素に幅を合わせる */
 }
 
+.selected-date {
+  background-color: #47a3ff; /* クリックした日付の背景色 */
+  color: white;  /* 文字色 */
+}
+
