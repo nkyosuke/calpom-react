@@ -18,9 +18,23 @@ function App() {
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [newEventTitle, setNewEventTitle] = useState("");
+
   const handleDateClick = (arg: DateClickArg) => { // ✅ 正しい型に修正
-  console.log("📅 Selected Date:", arg.dateStr);
-  setSelectedDate(arg.dateStr);
+    console.log("📅 Selected Date:", arg.dateStr);
+    // クリックした日付を保存
+    setSelectedDate(arg.dateStr);
+
+    // 既存の背景色をリセット
+    const previousSelected = document.querySelector('.selected-date');
+    if (previousSelected) {
+    previousSelected.classList.remove('selected-date');
+    }
+
+    // クリックされた日付の背景色を変更
+    const clickedDateElement = document.querySelector(`[data-date="${arg.dateStr}"]`);
+    if (clickedDateElement) {
+      clickedDateElement.classList.add('selected-date');
+    }
   };
   // useRef はここで定義
   const calendarRef = useRef<FullCalendar | null>(null); // FullCalendar の参照を保持
