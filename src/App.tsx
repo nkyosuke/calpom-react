@@ -116,15 +116,15 @@ function App() {
       />
       <button
         onClick={() => {
-          setShowInput(true);
-          setSelectedDate(null);
-          setEditingEvent(null);}}
-        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
-      >
-        ＋ 予定を追加
+        setShowInput(true);
+        setSelectedDate(format(new Date(), "yyyy-MM-dd")); // 今日の日付をセット
+        setEditingEvent(null);
+        }}
+        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
+      ＋ 予定を追加
       </button>
       {/* 予定登録フォーム（モーダル風に表示） */}
-      {selectedDate && (
+      {showInput && (
         <div className="mt-4 p-4 border rounded shadow">
           <h2 className="text-lg font-semibold">
           {editingEvent ? "予定を編集" : "予定を追加"} ({selectedDate ? format(new Date(selectedDate), "yyyy-MM-dd") : ""})
@@ -136,7 +136,7 @@ function App() {
             onChange={(e) => setNewEventTitle(e.target.value)}
             className="border p-2 w-full mt-2"
           />
-          {editingEvent ? (
+          {editingEvent  ? (
             <div>
               <button
                 onClick={updateEvent}
