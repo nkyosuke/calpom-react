@@ -1,7 +1,8 @@
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin, { EventDragStopArg } from "@fullcalendar/interaction"; // ✅ `EventDropStopArg` をインポート
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import interactionPlugin from "@fullcalendar/interaction";
+// import interactionPlugin from "@fullcalendar/interaction";
 import { DateClickArg } from "@fullcalendar/interaction"; // ✅ 型をインポート
 import { EventClickArg } from "@fullcalendar/core";
 import { format } from "date-fns";
@@ -52,27 +53,21 @@ function App() {
         start: selectedDate,
       };
       setEvents([...events, newEvent]);
-      setNewEventTitle(""); // 入力欄リセット
-      setSelectedDate(null); // モーダルを閉じる
-      setShowInput(false);
+      closeModal();
     }
   };
 
   const updateEvent = () => {
     if (editingEvent && newEventTitle.trim() !== "") {
       setEvents(events.map(e => e.id === editingEvent.id ? { ...e, title: newEventTitle } : e));
-      setEditingEvent(null);
-      setNewEventTitle("");
-      setShowInput(false);
+      closeModal();
     }
   };
 
   const deleteEvent = () => {
     if (editingEvent) {
       setEvents(events.filter(e => e.id !== editingEvent.id));
-      setEditingEvent(null);
-      setNewEventTitle("");
-      setShowInput(false);
+      closeModal();
     }
   };
 
@@ -84,6 +79,22 @@ function App() {
       setSelectedDate(event.start);
       setShowInput(true);
     }
+  };
+
+   // 🎯 モーダルを閉じる処理
+  const closeModal = () => {
+    setShowInput(false); // ✅ モーダルを非表示にする
+    setNewEventTitle("");
+    setEditingEvent(null);
+    setSelectedDate(null);
+  };
+
+  // 🔄 予定をドラッグ＆ドロップで移動
+  const handleEventDrop = (arg: EventDragStopArg) => {
+    const { event } = arg;
+    setEvents(events.map(e =>
+      e.id === event.id ? { ...e, start: event.startStr } : e // ✅ 予定の開始日を更新
+    ));
   };
 
   useEffect(() => {
@@ -112,6 +123,9 @@ function App() {
         events={events}
         dateClick={handleDateClick} // 日付クリックイベント
         eventClick={handleEventClick} // 予定クリックイベント追加
+        eventDrop={handleEventDrop} // ✅ 予定をドラッグ＆ドロップで移動できるように追加
+        editable={true} // ✅ 予定を編集可能にする
+        droppable={true} // ✅ ドロップ可能にする
         height={420} // 固定の高さを設定
       />
       <button
