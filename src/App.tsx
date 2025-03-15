@@ -1,5 +1,6 @@
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid'; // ✅ 時間単位のビューを追加
 import interactionPlugin, { EventDragStopArg } from "@fullcalendar/interaction"; // ✅ `EventDropStopArg` をインポート
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 // import interactionPlugin from "@fullcalendar/interaction";
@@ -14,14 +15,19 @@ type Event = {
   id: string;
   title: string;
   start: string;
+  end: string; // ✅ 終了時間を追加
 };
 
 function App() {
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [newEventTitle, setNewEventTitle] = useState("");
+  const [newEventStartTime, setNewEventStartTime] = useState("12:00"); // ✅ 開始時間
+  const [newEventEndTime, setNewEventEndTime] = useState("13:00"); // ✅ 終了時間
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [showInput, setShowInput] = useState(false);
+  const [tooltip, setTooltip] = useState<{ top: number; left: number; title: string; start: string; end: string;} | null>(null);
+
 
   const handleDateClick = (arg: DateClickArg) => { // ✅ 正しい型に修正
     console.log("📅 Selected Date:", arg.dateStr);
@@ -50,7 +56,8 @@ function App() {
       const newEvent: Event = {
         id: String(events.length + 1),
         title: newEventTitle,
-        start: selectedDate,
+        start: `${selectedDate}T${newEventStartTime}`, // ✅ 開始時間を適用
+        end: `${selectedDate}T${newEventEndTime}`, // ✅ 終了時間を適用
       };
       setEvents([...events, newEvent]);
       closeModal();
@@ -59,7 +66,11 @@ function App() {
 
   const updateEvent = () => {
     if (editingEvent && newEventTitle.trim() !== "") {
-      setEvents(events.map(e => e.id === editingEvent.id ? { ...e, title: newEventTitle } : e));
+      setEvents(events.map(e => e.id === editingEvent.id ? { ...e, title: newEventTitle, 
+        start: `${selectedDate}T${newEventStartTime}`,  // ✅ 開始時間を更新
+        end: `${selectedDate}T${newEventEndTime}` 
+      } : e
+    ));
       closeModal();
     }
   };
@@ -76,7 +87,9 @@ function App() {
     if (event) {
       setEditingEvent(event);
       setNewEventTitle(event.title);
-      setSelectedDate(event.start);
+      setSelectedDate(event.start.split("T")[0]);
+      setNewEventStartTime(event.start.split("T")[1]); // ✅ 開始時間をセット
+      setNewEventEndTime(event.end.split("T")[1]); // ✅ 終了時間をセット
       setShowInput(true);
     }
   };
@@ -85,6 +98,8 @@ function App() {
   const closeModal = () => {
     setShowInput(false); // ✅ モーダルを非表示にする
     setNewEventTitle("");
+    setNewEventStartTime("12:00");
+    setNewEventEndTime("13:00");
     setEditingEvent(null);
     setSelectedDate(null);
   };
@@ -95,6 +110,20 @@ function App() {
     setEvents(events.map(e =>
       e.id === event.id ? { ...e, start: event.startStr } : e // ✅ 予定の開始日を更新
     ));
+  };
+
+  const handleEventMouseEnter = (info: any) => {
+    const rect = info.el.getBoundingClientRect(); // イベントの位置を取得
+    setTooltip({
+      top: rect.top + window.scrollY - 40, // ポップアップを少し上に
+      left: rect.left + window.scrollX + rect.width / 2, // 水平方向の中心に
+      title: info.event.title, // イベントのタイトル
+      start: info.event.startStr.slice(11, 16), // ⏰ 開始時間
+      end: info.event.endStr.slice(11, 16),     // ⏰ 終了時間
+    });
+  };
+  const handleEventMouseLeave = () => {
+    setTooltip(null); // マウスが離れたら非表示
   };
 
   useEffect(() => {
@@ -114,9 +143,31 @@ function App() {
   }, []);
   return (
     <div className="calendar-container">
+      {/* ✅ ホバー時のツールチップ表示 */}
+      {tooltip && (
+        <div
+          style={{
+            position: "absolute",
+            top: `${tooltip.top}px`,
+            left: `${tooltip.left}px`,
+            background: "#333",
+            color: "#fff",
+            padding: "8px 10px",
+            borderRadius: "5px",
+            pointerEvents: "none",
+            transform: "translateX(-50%)",
+            whiteSpace: "nowrap",
+            fontSize: "14px",
+            boxShadow: "2px 2px 10px rgba(0, 0, 0, 0.5)", // ✅ 影を追加して見やすく
+          }}
+        >
+          <div><strong>{tooltip.title}</strong></div>
+          <div>{tooltip.start} ~ {tooltip.end}</div> {/* ⏰ ここを追加 */}
+        </div>
+      )}
       <FullCalendar 
         ref={calendarRef} // FullCalendar の参照を渡す
-        plugins={[dayGridPlugin, interactionPlugin]} // ✅ interactionPlugin を追加！
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} // ✅ timeGridPlugin を追加
         initialView="dayGridMonth"
         locales={[jaLocale]}
         locale='ja'
@@ -127,6 +178,8 @@ function App() {
         editable={true} // ✅ 予定を編集可能にする
         droppable={true} // ✅ ドロップ可能にする
         height={420} // 固定の高さを設定
+        eventMouseEnter={handleEventMouseEnter} // ✅ ホバー時の処理
+        eventMouseLeave={handleEventMouseLeave} // ✅ ホバー解除時の処理
       />
       <button
         onClick={() => {
@@ -148,6 +201,18 @@ function App() {
             placeholder="予定を入力"
             value={newEventTitle}
             onChange={(e) => setNewEventTitle(e.target.value)}
+            className="border p-2 w-full mt-2"
+          />
+          <input
+            type="time"
+            value={newEventStartTime}
+            onChange={(e) => setNewEventStartTime(e.target.value)}
+            className="border p-2 w-full mt-2"
+          />
+          <input
+            type="time"
+            value={newEventEndTime}
+            onChange={(e) => setNewEventEndTime(e.target.value)}
             className="border p-2 w-full mt-2"
           />
           {editingEvent  ? (
