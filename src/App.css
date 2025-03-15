@@ -49,6 +49,6 @@
 
 .selected-date {
   background-color: #47a3ff; /* クリックした日付の背景色 */
-  color: white;  /* 文字色 */
+  color: black;  /* 文字色 */
 }
 
