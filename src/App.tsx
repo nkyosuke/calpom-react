@@ -98,12 +98,12 @@ function App() {
         typeof event.start === "string"
           ? event.start.split("T")[1].slice(0, 5)
           : format(new Date(event.start), "HH:mm")
-      );
+      );// ✅ 開始時間をセット
       setNewEventEndTime(
         typeof event.end === "string"
           ? event.end.split("T")[1].slice(0, 5)
           : format(new Date(event.end), "HH:mm")
-      );
+      );// ✅ 終了時間をセット
       //setSelectedDate(event.start.split("T")[0]);
       //setNewEventStartTime(event.start.split("T")[1]); // ✅ 開始時間をセット
       //setNewEventEndTime(event.end.split("T")[1]); // ✅ 終了時間をセット
@@ -159,7 +159,9 @@ function App() {
     };
   }, []);
   return (
-    <div className="calendar-container">
+   
+   
+   <div className="calendar-container">
       {/* ✅ ホバー時のツールチップ表示 */}
       {tooltip && (
         <div
@@ -185,6 +187,11 @@ function App() {
       <FullCalendar 
         ref={calendarRef} // FullCalendar の参照を渡す
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} // ✅ timeGridPlugin を追加
+        headerToolbar={{
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        }}
         initialView="dayGridMonth"
         locales={[jaLocale]}
         locale='ja'
@@ -198,6 +205,7 @@ function App() {
         eventMouseEnter={handleEventMouseEnter} // ✅ ホバー時の処理
         eventMouseLeave={handleEventMouseLeave} // ✅ ホバー解除時の処理
       />
+
       <button
         onClick={() => {
         setShowInput(true);
