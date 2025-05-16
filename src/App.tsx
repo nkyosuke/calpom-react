@@ -1,11 +1,12 @@
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid'; // ✅ 時間単位のビューを追加
-import interactionPlugin, { EventDragStopArg } from "@fullcalendar/interaction"; // ✅ `EventDropStopArg` をインポート
+import interactionPlugin from "@fullcalendar/interaction"; // ✅ `EventDropStopArg` をインポート
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 // import interactionPlugin from "@fullcalendar/interaction";
 import { DateClickArg } from "@fullcalendar/interaction"; // ✅ 型をインポート
 import { EventClickArg } from "@fullcalendar/core";
+import { EventDropArg } from '@fullcalendar/core';
 import { format } from "date-fns";
 import React, { useState, useEffect, useRef } from 'react'; // useEffect をインポート
 import jaLocale from '@fullcalendar/core/locales/ja'; 
@@ -54,7 +55,8 @@ function App() {
   const addEvent = () => {
     if (selectedDate && newEventTitle.trim() !== "") {
       const newEvent: Event = {
-        id: String(events.length + 1),
+        //id: String(events.length + 1),
+        id: String(Date.now()),
         title: newEventTitle,
         start: `${selectedDate}T${newEventStartTime}`, // ✅ 開始時間を適用
         end: `${selectedDate}T${newEventEndTime}`, // ✅ 終了時間を適用
@@ -87,9 +89,24 @@ function App() {
     if (event) {
       setEditingEvent(event);
       setNewEventTitle(event.title);
-      setSelectedDate(event.start.split("T")[0]);
-      setNewEventStartTime(event.start.split("T")[1]); // ✅ 開始時間をセット
-      setNewEventEndTime(event.end.split("T")[1]); // ✅ 終了時間をセット
+      setSelectedDate(
+        typeof event.start === "string"
+          ? event.start.split("T")[0]
+          : format(new Date(event.start), "yyyy-MM-dd")
+      );
+      setNewEventStartTime(
+        typeof event.start === "string"
+          ? event.start.split("T")[1].slice(0, 5)
+          : format(new Date(event.start), "HH:mm")
+      );
+      setNewEventEndTime(
+        typeof event.end === "string"
+          ? event.end.split("T")[1].slice(0, 5)
+          : format(new Date(event.end), "HH:mm")
+      );
+      //setSelectedDate(event.start.split("T")[0]);
+      //setNewEventStartTime(event.start.split("T")[1]); // ✅ 開始時間をセット
+      //setNewEventEndTime(event.end.split("T")[1]); // ✅ 終了時間をセット
       setShowInput(true);
     }
   };
@@ -105,10 +122,10 @@ function App() {
   };
 
   // 🔄 予定をドラッグ＆ドロップで移動
-  const handleEventDrop = (arg: EventDragStopArg) => {
+  const handleEventDrop = (arg: EventDropArg) => {
     const { event } = arg;
     setEvents(events.map(e =>
-      e.id === event.id ? { ...e, start: event.startStr } : e // ✅ 予定の開始日を更新
+      e.id === event.id ? { ...e, start: event.startStr, end: event.endStr } : e // ✅ 予定の開始日を更新
     ));
   };
 
@@ -152,7 +169,7 @@ function App() {
             left: `${tooltip.left}px`,
             background: "#333",
             color: "#fff",
-            padding: "8px 10px",
+            padding: "10px 13px",
             borderRadius: "5px",
             pointerEvents: "none",
             transform: "translateX(-50%)",
@@ -203,12 +220,24 @@ function App() {
             onChange={(e) => setNewEventTitle(e.target.value)}
             className="border p-2 w-full mt-2"
           />
+          {/* 日付選択 */}
+          <label>日付:</label>
+          <input 
+            type="date" 
+            value={selectedDate || ""} 
+            onChange={(e) => setSelectedDate(e.target.value)} 
+            className="border p-2 w-full mt-2"
+          />
+          {/* 開始時間 */}
+          <label>開始時間:</label>
           <input
             type="time"
             value={newEventStartTime}
             onChange={(e) => setNewEventStartTime(e.target.value)}
             className="border p-2 w-full mt-2"
           />
+          {/* 終了時間 */}
+          <label>終了時間:</label>
           <input
             type="time"
             value={newEventEndTime}
