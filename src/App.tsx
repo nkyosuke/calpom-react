@@ -4,6 +4,8 @@ import timeGridPlugin from '@fullcalendar/timegrid'; // ✅ 時間単位のビ�
 import interactionPlugin from "@fullcalendar/interaction"; // ✅ `EventDropStopArg` をインポート
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 // import interactionPlugin from "@fullcalendar/interaction";
+import Tooltip from "./Tooltip";
+import { addHours } from "date-fns";
 import { DateClickArg } from "@fullcalendar/interaction"; // ✅ 型をインポート
 import { EventClickArg } from "@fullcalendar/core";
 import { EventDropArg } from '@fullcalendar/core';
@@ -32,6 +34,8 @@ function App() {
 
   const handleDateClick = (arg: DateClickArg) => { // ✅ 正しい型に修正
     console.log("📅 Selected Date:", arg.dateStr);
+    arg.jsEvent.preventDefault(); // 👈 これで自動スクロール抑止
+    arg.jsEvent.stopPropagation();
     // クリックした日付を保存
     setSelectedDate(arg.dateStr);
 
@@ -50,7 +54,7 @@ function App() {
   };
   // useRef はここで定義
   const calendarRef = useRef<FullCalendar | null>(null); // FullCalendar の参照を保持
-  
+
   // 予定追加処理
   const addEvent = () => {
     if (selectedDate && newEventTitle.trim() !== "") {
@@ -85,6 +89,7 @@ function App() {
   };
 
   const handleEventClick = (arg: EventClickArg) => {
+    arg.jsEvent.preventDefault(); 
     const event = events.find(e => e.id === arg.event.id);
     if (event) {
       setEditingEvent(event);
@@ -128,20 +133,33 @@ function App() {
       e.id === event.id ? { ...e, start: event.startStr, end: event.endStr } : e // ✅ 予定の開始日を更新
     ));
   };
+  
 
   const handleEventMouseEnter = (info: any) => {
-    const rect = info.el.getBoundingClientRect(); // イベントの位置を取得
+    const calendarApi = calendarRef.current?.getApi();
+    const viewType = calendarApi?.view?.type;
+
+    // 🎯 月ビュー（dayGridMonth）のみツールチップを表示
+    if (viewType !== 'dayGridMonth') return;
+
+    const rect = info.el.getBoundingClientRect();
+    const top = rect.top + window.scrollY;
+    const left = rect.left + window.scrollX;
+
     setTooltip({
-      top: rect.top + window.scrollY - 40, // ポップアップを少し上に
-      left: rect.left + window.scrollX + rect.width / 2, // 水平方向の中心に
-      title: info.event.title, // イベントのタイトル
-      start: info.event.startStr.slice(11, 16), // ⏰ 開始時間
-      end: info.event.endStr.slice(11, 16),     // ⏰ 終了時間
+      top,
+      left,
+      title: info.event.title,
+      start: info.event.start ? format(new Date(info.event.start), "HH:mm") : "",
+      end: info.event.end ? format(new Date(info.event.end), "HH:mm") : format(addHours(new Date(info.event.start), 1), "HH:mm"),
     });
   };
   const handleEventMouseLeave = () => {
     setTooltip(null); // マウスが離れたら非表示
   };
+  const handleViewDidMount = () => {
+  setTooltip(null); // ビューが変わったときにツールチップを削除
+};
 
   useEffect(() => {
     // 画面サイズが変更されたときにカレンダーをリサイズ
@@ -158,32 +176,10 @@ function App() {
       window.removeEventListener('resize', handleResize); // クリーンアップ
     };
   }, []);
-  return (
-   
-   
+  return (  
    <div className="calendar-container">
       {/* ✅ ホバー時のツールチップ表示 */}
-      {tooltip && (
-        <div
-          style={{
-            position: "absolute",
-            top: `${tooltip.top}px`,
-            left: `${tooltip.left}px`,
-            background: "#333",
-            color: "#fff",
-            padding: "10px 13px",
-            borderRadius: "5px",
-            pointerEvents: "none",
-            transform: "translateX(-50%)",
-            whiteSpace: "nowrap",
-            fontSize: "14px",
-            boxShadow: "2px 2px 10px rgba(0, 0, 0, 0.5)", // ✅ 影を追加して見やすく
-          }}
-        >
-          <div><strong>{tooltip.title}</strong></div>
-          <div>{tooltip.start} ~ {tooltip.end}</div> {/* ⏰ ここを追加 */}
-        </div>
-      )}
+      <Tooltip tooltip={tooltip} />   {/* ← Portal に差し替え */}
       <FullCalendar 
         ref={calendarRef} // FullCalendar の参照を渡す
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} // ✅ timeGridPlugin を追加
@@ -195,6 +191,8 @@ function App() {
         initialView="dayGridMonth"
         locales={[jaLocale]}
         locale='ja'
+        scrollTime="08:00:00"
+        scrollTimeReset={false}
         events={events}
         dateClick={handleDateClick} // 日付クリックイベント
         eventClick={handleEventClick} // 予定クリックイベント追加
@@ -202,6 +200,7 @@ function App() {
         editable={true} // ✅ 予定を編集可能にする
         droppable={true} // ✅ ドロップ可能にする
         height={420} // 固定の高さを設定
+        viewDidMount={handleViewDidMount}  // ← ここに追加
         eventMouseEnter={handleEventMouseEnter} // ✅ ホバー時の処理
         eventMouseLeave={handleEventMouseLeave} // ✅ ホバー解除時の処理
       />
