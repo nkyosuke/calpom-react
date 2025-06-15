@@ -52,4 +52,5 @@
     "@svgr/webpack": "^8.1.0",
     "ts-migrate": "^0.1.35"
   }
+  
 }
