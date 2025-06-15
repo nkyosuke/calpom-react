@@ -12,6 +12,8 @@ import { EventDropArg } from '@fullcalendar/core';
 import { format } from "date-fns";
 import React, { useState, useEffect, useRef } from 'react'; // useEffect をインポート
 import jaLocale from '@fullcalendar/core/locales/ja'; 
+import { testFirebaseConnection } from './firebaseTest';
+import { saveCalendarEvent } from './firebaseEvents';
 import './App.css';
 
 type Event = {
@@ -30,6 +32,10 @@ function App() {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [showInput, setShowInput] = useState(false);
   const [tooltip, setTooltip] = useState<{ top: number; left: number; title: string; start: string; end: string;} | null>(null);
+
+   useEffect(() => {
+    testFirebaseConnection();
+  }, []);
 
 
   const handleDateClick = (arg: DateClickArg) => { // ✅ 正しい型に修正
@@ -203,6 +209,16 @@ function App() {
         viewDidMount={handleViewDidMount}  // ← ここに追加
         eventMouseEnter={handleEventMouseEnter} // ✅ ホバー時の処理
         eventMouseLeave={handleEventMouseLeave} // ✅ ホバー解除時の処理
+        selectable={true}       // ← これが日付選択などを許可
+        eventAdd={(info) => {
+          const event = info.event;
+          saveCalendarEvent({
+            id: event.id,
+            title: event.title,
+            start: event.start?.toISOString() || '',
+            end: event.end?.toISOString() || '',
+          });
+        }}
       />
 
       <button
