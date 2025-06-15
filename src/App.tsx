@@ -12,8 +12,8 @@ import { EventDropArg } from '@fullcalendar/core';
 import { format } from "date-fns";
 import React, { useState, useEffect, useRef } from 'react'; // useEffect をインポート
 import jaLocale from '@fullcalendar/core/locales/ja'; 
-import { testFirebaseConnection } from './firebaseTest';
-import { saveCalendarEvent } from './firebaseEvents';
+//import { testFirebaseConnection } from './firebaseTest';
+import { saveCalendarEvent } from './saveCalendarEvent';
 import './App.css';
 
 type Event = {
@@ -33,9 +33,6 @@ function App() {
   const [showInput, setShowInput] = useState(false);
   const [tooltip, setTooltip] = useState<{ top: number; left: number; title: string; start: string; end: string;} | null>(null);
 
-   useEffect(() => {
-    testFirebaseConnection();
-  }, []);
 
 
   const handleDateClick = (arg: DateClickArg) => { // ✅ 正しい型に修正
@@ -62,7 +59,7 @@ function App() {
   const calendarRef = useRef<FullCalendar | null>(null); // FullCalendar の参照を保持
 
   // 予定追加処理
-  const addEvent = () => {
+  const addEvent = async () => {
     if (selectedDate && newEventTitle.trim() !== "") {
       const newEvent: Event = {
         //id: String(events.length + 1),
@@ -71,8 +68,14 @@ function App() {
         start: `${selectedDate}T${newEventStartTime}`, // ✅ 開始時間を適用
         end: `${selectedDate}T${newEventEndTime}`, // ✅ 終了時間を適用
       };
+      try {
+      await saveCalendarEvent(newEvent); // Firebaseに保存
       setEvents([...events, newEvent]);
       closeModal();
+    } catch (error) {
+      alert('イベントの保存に失敗しました');
+      console.error(error);
+    }
     }
   };
 
@@ -213,7 +216,6 @@ function App() {
         eventAdd={(info) => {
           const event = info.event;
           saveCalendarEvent({
-            id: event.id,
             title: event.title,
             start: event.start?.toISOString() || '',
             end: event.end?.toISOString() || '',

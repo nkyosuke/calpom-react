@@ -2,7 +2,6 @@ import { db } from './firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
 export type CalendarEvent = {
-  id: string;
   title: string;
   start: string;
   end: string;
