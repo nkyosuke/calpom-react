@@ -2,8 +2,6 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid'; // ✅ 時間単位のビューを追加
 import interactionPlugin from "@fullcalendar/interaction"; // ✅ `EventDropStopArg` をインポート
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// import interactionPlugin from "@fullcalendar/interaction";
 import Tooltip from "./Tooltip";
 import { addHours } from "date-fns";
 import { DateClickArg } from "@fullcalendar/interaction"; // ✅ 型をインポート
@@ -11,10 +9,12 @@ import { EventClickArg } from "@fullcalendar/core";
 import { format } from "date-fns";
 import React, { useState, useEffect, useRef } from 'react'; // useEffect をインポート
 import jaLocale from '@fullcalendar/core/locales/ja'; 
-//import { testFirebaseConnection } from './firebaseTest';
 import { saveCalendarEvent } from './saveCalendarEvent';
 import { deleteCalendarEvent } from './deleteCalendarEvent';
 import { updateCalendarEvent } from './updateCalendarEvent';
+import { getAuth, onAuthStateChanged, User ,signOut} from 'firebase/auth';
+import { auth } from './firebase';
+import SignIn from './auth/SignIn'; // 作成したコンポーネントをインポート
 import './App.css';
 
 type Event = {
@@ -34,7 +34,16 @@ function App() {
   const [showInput, setShowInput] = useState(false);
   const [tooltip, setTooltip] = useState<{ top: number; left: number; title: string; start: string; end: string;} | null>(null);
 
+  const [user, setUser] = useState<User | null>(null);
 
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    setUser(currentUser);
+  });
+
+  return () => unsubscribe();
+  }, []);
 
   const handleDateClick = (arg: DateClickArg) => { // ✅ 正しい型に修正
     console.log("📅 Selected Date:", arg.dateStr);
@@ -58,6 +67,7 @@ function App() {
   };
   // useRef はここで定義
   const calendarRef = useRef<FullCalendar | null>(null); // FullCalendar の参照を保持
+  
 
   // 予定追加処理
   const addEvent = async () => {
@@ -126,9 +136,6 @@ function App() {
           ? event.end.split("T")[1].slice(0, 5)
           : format(new Date(event.end), "HH:mm")
       );// ✅ 終了時間をセット
-      //setSelectedDate(event.start.split("T")[0]);
-      //setNewEventStartTime(event.start.split("T")[1]); // ✅ 開始時間をセット
-      //setNewEventEndTime(event.end.split("T")[1]); // ✅ 終了時間をセット
       setShowInput(true);
     }
   };
@@ -166,6 +173,9 @@ const handleEventChange = async (arg: any) => {
     console.error('Firestore 更新失敗', err);
   }
 };
+ const handleLogout = async () => {
+    await signOut(auth);
+  };
 
   const handleEventMouseEnter = (info: any) => {
     const calendarApi = calendarRef.current?.getApi();
@@ -208,8 +218,16 @@ const handleEventChange = async (arg: any) => {
       window.removeEventListener('resize', handleResize); // クリーンアップ
     };
   }, []);
+  if (!user) {
+    return <SignIn />;
+  }
   return (  
    <div className="calendar-container">
+       <div className="flex justify-end p-2">
+        <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">
+          ログアウト
+        </button>
+      </div>
       {/* ✅ ホバー時のツールチップ表示 */}
       <Tooltip tooltip={tooltip} />   {/* ← Portal に差し替え */}
       <FullCalendar 
