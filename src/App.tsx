@@ -14,6 +14,7 @@ import React, { useState, useEffect, useRef } from 'react'; // useEffect をイ�
 import jaLocale from '@fullcalendar/core/locales/ja'; 
 //import { testFirebaseConnection } from './firebaseTest';
 import { saveCalendarEvent } from './saveCalendarEvent';
+import { deleteCalendarEvent } from './deleteCalendarEvent';
 import './App.css';
 
 type Event = {
@@ -90,12 +91,16 @@ function App() {
     }
   };
 
-  const deleteEvent = () => {
-    if (editingEvent) {
-      setEvents(events.filter(e => e.id !== editingEvent.id));
-      closeModal();
-    }
-  };
+  const deleteEvent = async () => {
+  if (editingEvent) {
+    // Firestore から削除
+    await deleteCalendarEvent(editingEvent.id);
+
+    // ローカル状態からも削除
+    setEvents(events.filter(e => e.id !== editingEvent.id));
+    closeModal();
+  }
+};
 
   const handleEventClick = (arg: EventClickArg) => {
     arg.jsEvent.preventDefault(); 
@@ -216,6 +221,7 @@ function App() {
         eventAdd={(info) => {
           const event = info.event;
           saveCalendarEvent({
+            id:event.id,
             title: event.title,
             start: event.start?.toISOString() || '',
             end: event.end?.toISOString() || '',
