@@ -8,13 +8,13 @@ import Tooltip from "./Tooltip";
 import { addHours } from "date-fns";
 import { DateClickArg } from "@fullcalendar/interaction"; // ✅ 型をインポート
 import { EventClickArg } from "@fullcalendar/core";
-import { EventDropArg } from '@fullcalendar/core';
 import { format } from "date-fns";
 import React, { useState, useEffect, useRef } from 'react'; // useEffect をインポート
 import jaLocale from '@fullcalendar/core/locales/ja'; 
 //import { testFirebaseConnection } from './firebaseTest';
 import { saveCalendarEvent } from './saveCalendarEvent';
 import { deleteCalendarEvent } from './deleteCalendarEvent';
+import { updateCalendarEvent } from './updateCalendarEvent';
 import './App.css';
 
 type Event = {
@@ -81,14 +81,17 @@ function App() {
   };
 
   const updateEvent = () => {
-    if (editingEvent && newEventTitle.trim() !== "") {
-      setEvents(events.map(e => e.id === editingEvent.id ? { ...e, title: newEventTitle, 
-        start: `${selectedDate}T${newEventStartTime}`,  // ✅ 開始時間を更新
-        end: `${selectedDate}T${newEventEndTime}` 
-      } : e
-    ));
-      closeModal();
-    }
+     if (editingEvent && newEventTitle.trim() !== "") {
+        const updatedEvent: Event = {
+        ...editingEvent,
+        title: newEventTitle,
+        start: `${selectedDate}T${newEventStartTime}`,
+        end: `${selectedDate}T${newEventEndTime}`,
+    };
+    setEvents(events.map(e => e.id === editingEvent.id ? updatedEvent : e));
+    saveCalendarEvent(updatedEvent); // ← Firebase 更新
+    closeModal();
+  }
   };
 
   const deleteEvent = async () => {
@@ -140,14 +143,29 @@ function App() {
     setSelectedDate(null);
   };
 
-  // 🔄 予定をドラッグ＆ドロップで移動
-  const handleEventDrop = (arg: EventDropArg) => {
-    const { event } = arg;
-    setEvents(events.map(e =>
-      e.id === event.id ? { ...e, start: event.startStr, end: event.endStr } : e // ✅ 予定の開始日を更新
-    ));
+  // ① drag & drop／resize で呼ばれる共通ハンドラ
+const handleEventChange = async (arg: any) => {
+  const ev = arg.event;                         // FullCalendar の Event オブジェクト
+  const updated = {
+    id: ev.id,                                  // ← Firestore ドキュメント ID と一致
+    title: ev.title,
+    start: ev.startStr,
+    end:   ev.endStr,
   };
-  
+
+  // 1. ローカル state を更新
+  setEvents(prev =>
+    prev.map(e => (e.id === updated.id ? updated : e))
+  );
+
+  // 2. Firestore を更新
+  try {
+    await updateCalendarEvent(updated);
+    console.log('🔄 Firestore 更新 OK');
+  } catch (err) {
+    console.error('Firestore 更新失敗', err);
+  }
+};
 
   const handleEventMouseEnter = (info: any) => {
     const calendarApi = calendarRef.current?.getApi();
@@ -210,7 +228,9 @@ function App() {
         events={events}
         dateClick={handleDateClick} // 日付クリックイベント
         eventClick={handleEventClick} // 予定クリックイベント追加
-        eventDrop={handleEventDrop} // ✅ 予定をドラッグ＆ドロップで移動できるように追加
+        eventDrop={handleEventChange} // ✅ 予定をドラッグ＆ドロップで移動できるように追加
+        eventResize={handleEventChange}   // 長さ変更
+        eventChange={handleEventChange}   // （オプション）何らかの変更
         editable={true} // ✅ 予定を編集可能にする
         droppable={true} // ✅ ドロップ可能にする
         height={420} // 固定の高さを設定
