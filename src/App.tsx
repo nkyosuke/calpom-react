@@ -12,25 +12,25 @@ import jaLocale from '@fullcalendar/core/locales/ja';
 import { saveCalendarEvent } from './saveCalendarEvent';
 import { deleteCalendarEvent } from './deleteCalendarEvent';
 import { updateCalendarEvent } from './updateCalendarEvent';
+import { getCalendarEvents } from './getCalendarEvents'; // ✅ 追加
 import { getAuth, onAuthStateChanged, User ,signOut} from 'firebase/auth';
 import { auth } from './firebase';
 import SignIn from './auth/SignIn'; // 作成したコンポーネントをインポート
 import './App.css';
 
-type Event = {
+type CalendarEvent = {
   id: string;
   title: string;
   start: string;
-  end: string; // ✅ 終了時間を追加
+  end: string;
 };
-
 function App() {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [newEventTitle, setNewEventTitle] = useState("");
   const [newEventStartTime, setNewEventStartTime] = useState("12:00"); // ✅ 開始時間
   const [newEventEndTime, setNewEventEndTime] = useState("13:00"); // ✅ 終了時間
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [showInput, setShowInput] = useState(false);
   const [tooltip, setTooltip] = useState<{ top: number; left: number; title: string; start: string; end: string;} | null>(null);
 
@@ -38,10 +38,22 @@ function App() {
 
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
     setUser(currentUser);
+    if (currentUser) {
+      console.log("✅ ログインユーザーのUID:", currentUser.uid);
+      const fetched = await getCalendarEvents(currentUser.uid);
+      console.log("fetched events:", fetched); // ← ここを確認
+      setEvents(fetched);
+      const normalized = fetched.map(e => ({
+        ...e,
+        start: new Date(e.start).toISOString(),
+        end: new Date(e.end).toISOString()
+      }));
+      console.log("カレンダーに渡す形式:", normalized);
+      setEvents(normalized);
+    }
   });
-
   return () => unsubscribe();
   }, []);
 
@@ -71,37 +83,37 @@ function App() {
 
   // 予定追加処理
   const addEvent = async () => {
-    if (selectedDate && newEventTitle.trim() !== "") {
-      const newEvent: Event = {
-        //id: String(events.length + 1),
+    if (selectedDate && newEventTitle.trim() !== "" && user) {
+      const newEvent: CalendarEvent = {
         id: String(Date.now()),
         title: newEventTitle,
-        start: `${selectedDate}T${newEventStartTime}`, // ✅ 開始時間を適用
-        end: `${selectedDate}T${newEventEndTime}`, // ✅ 終了時間を適用
+        start: `${selectedDate}T${newEventStartTime}`,
+        end: `${selectedDate}T${newEventEndTime}`,
       };
       try {
-      await saveCalendarEvent(newEvent); // Firebaseに保存
-      setEvents([...events, newEvent]);
-      closeModal();
-    } catch (error) {
-      alert('イベントの保存に失敗しました');
-      console.error(error);
-    }
+        await saveCalendarEvent({ ...newEvent, uid: user.uid });
+        setEvents([...events, newEvent]);
+        closeModal();
+      } catch (error) {
+        alert('イベントの保存に失敗しました');
+        console.error(error);
+      }
     }
   };
 
-  const updateEvent = () => {
-     if (editingEvent && newEventTitle.trim() !== "") {
-        const updatedEvent: Event = {
+  const updateEvent = () => {  
+    if (!user) return; // ユーザーがいない場合は処理しない
+    if (editingEvent && newEventTitle.trim() !== "") {
+      const updatedEvent: CalendarEvent = {
         ...editingEvent,
         title: newEventTitle,
         start: `${selectedDate}T${newEventStartTime}`,
         end: `${selectedDate}T${newEventEndTime}`,
-    };
-    setEvents(events.map(e => e.id === editingEvent.id ? updatedEvent : e));
-    saveCalendarEvent(updatedEvent); // ← Firebase 更新
-    closeModal();
-  }
+      };
+      setEvents(events.map(e => e.id === editingEvent.id ? updatedEvent : e));
+      saveCalendarEvent({ ...updatedEvent, uid: user.uid }); // ← Firebase 更新
+      closeModal();
+    }
   };
 
   const deleteEvent = async () => {
@@ -167,7 +179,7 @@ const handleEventChange = async (arg: any) => {
 
   // 2. Firestore を更新
   try {
-    await updateCalendarEvent(updated);
+    await updateCalendarEvent({ ...updated, uid: user!.uid });
     console.log('🔄 Firestore 更新 OK');
   } catch (err) {
     console.error('Firestore 更新失敗', err);
@@ -259,10 +271,11 @@ const handleEventChange = async (arg: any) => {
         eventAdd={(info) => {
           const event = info.event;
           saveCalendarEvent({
-            id:event.id,
+            id: event.id, // ✅ 必須のIDを追加
             title: event.title,
             start: event.start?.toISOString() || '',
             end: event.end?.toISOString() || '',
+            uid: user!.uid, // ✅ ログインユーザーのUID
           });
         }}
       />
