@@ -1,15 +1,20 @@
-import { getAuth, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+// src/auth/authService.ts
+import { auth } from '../firebase'; // ← ここが超重要！
 
-const auth = getAuth();
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInAnonymously,
+  sendPasswordResetEmail
+} from "firebase/auth";
 
-export const loginAnonymously = async () => {
-  return await signInAnonymously(auth);
-};
+export const loginAnonymously = () => signInAnonymously(auth);
 
-export const loginWithEmail = async (email: string, password: string) => {
-  return await signInWithEmailAndPassword(auth, email, password);
-};
+export const loginWithEmail = (email: string, password: string) =>
+  signInWithEmailAndPassword(auth, email, password);
 
-export const registerWithEmail = async (email: string, password: string) => {
-  return await createUserWithEmailAndPassword(auth, email, password);
-};
+export const registerWithEmail = (email: string, password: string) =>
+  createUserWithEmailAndPassword(auth, email, password);
+
+export const resetPassword = (email: string) =>
+  sendPasswordResetEmail(auth, email);

@@ -1,78 +1,78 @@
 import React, { useState } from 'react';
-import { loginAnonymously, loginWithEmail, registerWithEmail } from './authService';
+import { loginAnonymously, loginWithEmail } from './authService';
+import { useNavigate } from 'react-router-dom';
 
 const SignIn: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-
-  const handleAnonymousLogin = async () => {
-    try {
-      await loginAnonymously();
-    } catch (error) {
-      console.error('❌ 匿名ログイン失敗:', error);
-      setError('匿名ログインに失敗しました');
-    }
-  };
+  const navigate = useNavigate();
 
   const handleEmailLogin = async () => {
     try {
       await loginWithEmail(email, password);
+      alert('✅ ログイン成功');
+      navigate('/calendar');
     } catch (error) {
-      console.error('❌ メールログイン失敗:', error);
-      setError('メールログインに失敗しました');
+      alert('❌ ログイン失敗');
+      console.error(error);
     }
   };
 
-  const handleRegister = async () => {
+  const handleAnonymousLogin = async () => {
     try {
-      await registerWithEmail(email, password);
+      await loginAnonymously();
+      alert('✅ 匿名ログイン成功');
+      navigate('/calendar');
     } catch (error) {
-      console.error('❌ 登録失敗:', error);
-      setError('登録に失敗しました');
+      alert('❌ 匿名ログイン失敗');
+      console.error(error);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
-      <div className="w-full max-w-md bg-gray-800 p-8 rounded-xl shadow-xl">
-        <h2 className="text-2xl font-bold text-white text-center mb-6">カレンダーにログイン</h2>
-
-        <input
-          type="email"
-          placeholder="メールアドレス"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3 py-2 bg-gray-700 text-white rounded-md mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <input
-          type="password"
-          placeholder="パスワード"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-3 py-2 bg-gray-700 text-white rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
-
-        <div className="flex flex-col gap-2">
+    <div className="min-h-screen bg-white flex items-center justify-center px-4">
+      <div className="max-w-sm w-full space-y-8">
+        <div className="text-center">
+          <div className="flex justify-center">
+            <img src="./logo.svg" alt="logo" className="h-12 mb-4" />
+          </div>
+          <h2 className="text-2xl font-semibold text-gray-800">サインイン</h2>
+        </div>
+        <div className="rounded-lg shadow-md bg-white p-6 space-y-4">
+          <input
+            type="email"
+            placeholder="メールアドレス"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+          />
+          <input
+            type="password"
+            placeholder="パスワード"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+          />
           <button
             onClick={handleEmailLogin}
-            className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition duration-200"
+            className="w-full bg-black text-white py-2 rounded-md hover:opacity-90 transition"
           >
-            メールでログイン
+            ログイン
           </button>
-          <button
-            onClick={handleRegister}
-            className="bg-green-600 hover:bg-green-700 text-white py-2 rounded-md transition duration-200"
-          >
-            新規登録
-          </button>
+          <div className="flex justify-between text-sm text-gray-500 mt-2">
+            <button onClick={() => navigate('/signup')} className="hover:underline">
+              新規登録
+            </button>
+            <button onClick={() => navigate('/reset')} className="hover:underline">
+              パスワードをお忘れですか？
+            </button>
+          </div>
+          <hr className="my-4" />
           <button
             onClick={handleAnonymousLogin}
-            className="bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-md transition duration-200"
+            className="w-full border border-gray-400 py-2 rounded-md hover:bg-gray-100 transition"
           >
-            匿名ログイン
+            匿名で続ける
           </button>
         </div>
       </div>
