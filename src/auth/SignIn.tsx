@@ -34,7 +34,7 @@ const SignIn: React.FC = () => {
       <div className="max-w-sm w-full space-y-8">
         <div className="text-center">
           <div className="flex justify-center">
-            <img src="./logo.svg" alt="logo" className="h-12 mb-4" />
+            <img src="./CalPom.png" alt="logo" className="h-12 mb-4" />
           </div>
           <h2 className="text-2xl font-semibold text-gray-800">サインイン</h2>
         </div>

@@ -17,12 +17,20 @@ import { getAuth, onAuthStateChanged, User ,signOut} from 'firebase/auth';
 import { auth } from './firebase';
 import SignIn from './auth/SignIn'; // 作成したコンポーネントをインポート
 import './App.css';
+import PomodoroFab    from './components/PomodoroFab';
+import PomodoroPanel  from './components/PomodoroPanel';
 
 type CalendarEvent = {
   id: string;
   title: string;
   start: string;
   end: string;
+};
+
+type PomodoroInput = {
+  task: string;
+  note: string;
+  sets: number;
 };
 function AppMain() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -33,6 +41,7 @@ function AppMain() {
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [showInput, setShowInput] = useState(false);
   const [tooltip, setTooltip] = useState<{ top: number; left: number; title: string; start: string; end: string;} | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
 
   const [user, setUser] = useState<User | null>(null);
 
@@ -79,7 +88,10 @@ function AppMain() {
   };
   // useRef はここで定義
   const calendarRef = useRef<FullCalendar | null>(null); // FullCalendar の参照を保持
-  
+  // Firebase 登録（ステップ2で実装）
+  const handleRegister = async ({ task, note, sets }: PomodoroInput) => {
+    console.log('🔥 save pomodoro:', { task, note, sets });
+  };
 
   // 予定追加処理
   const addEvent = async () => {
@@ -351,6 +363,12 @@ const handleEventChange = async (arg: any) => {
           )}
         </div>
       )}
+      <PomodoroFab onClick={() => setPanelOpen(true)} />
+      <PomodoroPanel
+        isOpen={panelOpen}
+        onClose={() => setPanelOpen(false)}
+        onRegister={handleRegister}
+      />
     </div>
   );
 }
