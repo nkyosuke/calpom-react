@@ -19,6 +19,7 @@ import SignIn from './auth/SignIn'; // 作成したコンポーネントをイ�
 import './App.css';
 import PomodoroFab    from './components/PomodoroFab';
 import PomodoroPanel  from './components/PomodoroPanel';
+import { savePomodoroTask } from './pomodoro/savePomodoroTask';
 
 type CalendarEvent = {
   id: string;
@@ -89,8 +90,8 @@ function AppMain() {
   // useRef はここで定義
   const calendarRef = useRef<FullCalendar | null>(null); // FullCalendar の参照を保持
   // Firebase 登録（ステップ2で実装）
-  const handleRegister = async ({ task, note, sets }: PomodoroInput) => {
-    console.log('🔥 save pomodoro:', { task, note, sets });
+  const handleRegister = async (input: PomodoroInput) => {
+    await savePomodoroTask(input);
   };
 
   // 予定追加処理
