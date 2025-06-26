@@ -20,6 +20,7 @@ import './App.css';
 import PomodoroFab    from './components/PomodoroFab';
 import PomodoroPanel  from './components/PomodoroPanel';
 import { savePomodoroTask } from './pomodoro/savePomodoroTask';
+import { getPomodoroTasks } from './pomodoro/getPomodoroTasks';
 
 type CalendarEvent = {
   id: string;
@@ -43,6 +44,7 @@ function AppMain() {
   const [showInput, setShowInput] = useState(false);
   const [tooltip, setTooltip] = useState<{ top: number; left: number; title: string; start: string; end: string;} | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [pomodoroDates, setPomodoroDates] = useState<string[]>([]);
 
   const [user, setUser] = useState<User | null>(null);
 
@@ -66,6 +68,14 @@ function AppMain() {
   });
   return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+  if (!user) return;
+    getPomodoroTasks(user.uid).then((tasks) => {
+      const uniqueDates = [...new Set(tasks.map((t) => t.date))];
+      setPomodoroDates(uniqueDates);
+    });
+  }, [user]);
 
   const handleDateClick = (arg: DateClickArg) => { // ✅ 正しい型に修正
     console.log("📅 Selected Date:", arg.dateStr);
@@ -281,6 +291,16 @@ const handleEventChange = async (arg: any) => {
         eventMouseEnter={handleEventMouseEnter} // ✅ ホバー時の処理
         eventMouseLeave={handleEventMouseLeave} // ✅ ホバー解除時の処理
         selectable={true}       // ← これが日付選択などを許可
+        dayCellContent={(arg) => {
+          const dateStr = arg.date.toISOString().split('T')[0];
+          const isPomodoroDone = pomodoroDates.includes(dateStr);
+          return (
+            <div className="fc-daygrid-day-number">
+              {arg.dayNumberText}
+              {isPomodoroDone && <span className="ml-1 text-red-500">●</span>}
+            </div>
+          );
+        }}
         eventAdd={(info) => {
           const event = info.event;
           saveCalendarEvent({
@@ -290,6 +310,17 @@ const handleEventChange = async (arg: any) => {
             end: event.end?.toISOString() || '',
             uid: user!.uid, // ✅ ログインユーザーのUID
           });
+        }}
+        eventContent={(arg) => {
+          const dateStr = arg.dateStr; // 'YYYY-MM-DD'
+          const hasPomodoro = pomodoroDates.includes(dateStr);
+          return (
+          <>
+            <b>{arg.timeText}</b>
+            <i>{arg.event.title}</i>
+            {hasPomodoro && <span className="text-red-500 text-xs ml-1">●</span>}
+          </>
+          );
         }}
       />
 
