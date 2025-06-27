@@ -10,7 +10,7 @@ export default function Tooltip({ tooltip }: Props) {
   return createPortal(
     <div
       style={{
-        position: "fixed",          // ← ここがポイント！（viewport 基準）
+        position: "fixed", 
         top: tooltip.top,
         left: tooltip.left,
         transform: "translate(-50%, -100%)",
@@ -18,16 +18,20 @@ export default function Tooltip({ tooltip }: Props) {
         color: "#fff",
         padding: "10px 13px",
         borderRadius: "5px",
-        pointerEvents: "none",
+        pointerEvents: "none", 
         whiteSpace: "nowrap",
         fontSize: "14px",
         zIndex: 10000,
         boxShadow: "2px 2px 10px rgba(0,0,0,.5)",
+        maxWidth: '250px', 
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
       }}
+      aria-hidden="true" 
     >
-      <strong>{tooltip.title}</strong>
+      <strong style={{ display: 'block', maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tooltip.title}</strong>
       <div>{tooltip.start} – {tooltip.end}</div>
     </div>,
-    document.body                 // ← Portal 先
+    document.body                 
   );
 }

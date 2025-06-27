@@ -5,13 +5,14 @@ import { db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
 
 export type PomodoroTaskInput = {
+  eventId: string; // ← 追加
   task: string;
   note: string;
   sets: number;
 };
 
 // 👇 export を使うことで、モジュールとして認識される
-export const savePomodoroTask = async ({ task, note, sets }: PomodoroTaskInput) => {
+export const savePomodoroTask = async ({ eventId, task, note, sets }: PomodoroTaskInput) => {
   const auth = getAuth();
   const user = auth.currentUser;
 
@@ -26,6 +27,7 @@ export const savePomodoroTask = async ({ task, note, sets }: PomodoroTaskInput) 
 
   const pomodoroData = {
     id: timestamp,
+    eventId, // ← 追加
     task,
     note,
     sets,

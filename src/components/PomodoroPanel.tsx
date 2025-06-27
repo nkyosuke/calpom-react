@@ -3,13 +3,14 @@ import React, { useState, useEffect } from 'react';
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onRegister: (data: { task: string; note: string; sets: number }) => void;
+  onRegister: (data: { eventId: string; task: string; note: string; sets: number }) => void;
+  eventId: string | null; // 追加
 };
 
 const FOCUS_MIN = 25;
 const BREAK_MIN = 5;
 
-const PomodoroPanel: React.FC<Props> = ({ isOpen, onClose, onRegister }) => {
+const PomodoroPanel: React.FC<Props> = ({ isOpen, onClose, onRegister, eventId }) => {
   const [task, setTask] = useState('');
   const [note, setNote] = useState('');
   const [sets, setSets] = useState(1);
@@ -94,11 +95,12 @@ const PomodoroPanel: React.FC<Props> = ({ isOpen, onClose, onRegister }) => {
         {/* 登録 */}
         <button
           onClick={() => {
-            onRegister({ task, note, sets });
+            if (!eventId) return; // 紐付くイベントがなければ何もしない
+            onRegister({ eventId, task, note, sets });
             onClose();
           }}
           className="w-full py-2 bg-green-600 rounded hover:bg-green-700 mt-4 disabled:opacity-40"
-          disabled={!task.trim()}
+          disabled={!task.trim() || !eventId}
         >
           実績を保存
         </button>

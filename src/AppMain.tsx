@@ -47,6 +47,7 @@ function AppMain() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [pomodoroDates, setPomodoroDates] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [pomodoroTasks, setPomodoroTasks] = useState([]); // 追加
 
   useEffect(() => {
     const auth = getAuth();
@@ -72,6 +73,7 @@ function AppMain() {
   useEffect(() => {
     if (!user) return;
     getPomodoroTasks(user.uid).then((tasks) => {
+      setPomodoroTasks(tasks);
       const uniqueDates = [...new Set(tasks.map((t) => t.date))];
       setPomodoroDates(uniqueDates);
     });
@@ -118,8 +120,15 @@ function AppMain() {
   // useRef はここで定義
   const calendarRef = useRef<FullCalendar | null>(null);
   // Firebase 登録（ステップ2で実装）
-  const handleRegister = async (input: PomodoroInput) => {
-    await savePomodoroTask(input);
+  const handleRegister = async (input) => {
+    if (!editingEvent) return; // 紐付くイベントがなければ何もしない
+    await savePomodoroTask({ ...input, eventId: editingEvent.id });
+    // 実績を再取得
+    if (user) {
+      const tasks = await getPomodoroTasks(user.uid);
+      setPomodoroTasks(tasks);
+      setPomodoroDates([...new Set(tasks.map((t) => t.date))]);
+    }
   };
 
   // 予定追加処理
@@ -419,6 +428,7 @@ function AppMain() {
         isOpen={panelOpen}
         onClose={() => setPanelOpen(false)}
         onRegister={handleRegister}
+        eventId={editingEvent ? editingEvent.id : null}
       />
     </div>
   );
