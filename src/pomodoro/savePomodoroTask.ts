@@ -1,17 +1,14 @@
-// src/pomodoro/savePomodoroTask.ts
-
 import { getAuth } from 'firebase/auth';
-import { db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
-export type PomodoroTaskInput = {
-  eventId: string; // ← 追加
+type PomodoroTaskInput = {
+  eventId: string;
   task: string;
   note: string;
   sets: number;
 };
 
-// 👇 export を使うことで、モジュールとして認識される
 export const savePomodoroTask = async ({ eventId, task, note, sets }: PomodoroTaskInput) => {
   const auth = getAuth();
   const user = auth.currentUser;
@@ -27,7 +24,7 @@ export const savePomodoroTask = async ({ eventId, task, note, sets }: PomodoroTa
 
   const pomodoroData = {
     id: timestamp,
-    eventId, // ← 追加
+    eventId,
     task,
     note,
     sets,
@@ -36,7 +33,10 @@ export const savePomodoroTask = async ({ eventId, task, note, sets }: PomodoroTa
   };
 
   try {
-    await setDoc(doc(db, 'users', uid, 'events', timestamp), pomodoroData);
+    await setDoc(
+      doc(db, 'users', uid, 'events', eventId, 'pomodoros', timestamp), // ✅ 修正
+      pomodoroData
+    );
     console.log('🔥 Pomodoro 登録成功:', pomodoroData);
   } catch (error) {
     console.error('❌ Pomodoro 登録失敗:', error);

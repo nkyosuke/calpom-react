@@ -1,15 +1,18 @@
-import { Play } from 'lucide-react';            // npm i lucide-react
 import React from 'react';
 
-type Props = { onClick: () => void };
+type Props = { onClick: () => void; disabled?: boolean };
 
-const PomodoroFab: React.FC<Props> = ({ onClick }) => (
+const PomodoroFab: React.FC<Props> = ({ onClick, disabled }) => (
   <button
-    onClick={onClick}
-    className="fixed bottom-6 right-6 z-50 bg-cyan-500 hover:bg-cyan-600 text-white p-4 rounded-full shadow-lg transition"
-    aria-label="Start Pomodoro"
+    onClick={disabled ? undefined : onClick}
+    className={
+      "fixed bottom-6 right-6 rounded-full p-4 shadow-lg transition " +
+      (disabled
+        ? "bg-gray-300 cursor-not-allowed"
+        : "bg-red-500 hover:bg-red-600 text-white")
+    }
   >
-    <Play className="w-6 h-6" />
+    🍅
   </button>
 );
 

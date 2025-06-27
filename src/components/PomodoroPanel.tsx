@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
 
+type PomodoroInput = {
+  task: string;
+  note: string;
+  sets: number;
+  eventId: string;
+};
+
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onRegister: (data: { eventId: string; task: string; note: string; sets: number }) => void;
-  eventId: string | null; // 追加
+  onRegister: (input: PomodoroInput) => void;
+  eventId: string | null;
+  eventTitle: string | null;
 };
 
 const FOCUS_MIN = 25;
 const BREAK_MIN = 5;
 
-const PomodoroPanel: React.FC<Props> = ({ isOpen, onClose, onRegister, eventId }) => {
+const PomodoroPanel: React.FC<Props> = ({ isOpen, onClose, onRegister, eventId ,eventTitle}) => {
   const [task, setTask] = useState('');
   const [note, setNote] = useState('');
   const [sets, setSets] = useState(1);
@@ -18,13 +26,26 @@ const PomodoroPanel: React.FC<Props> = ({ isOpen, onClose, onRegister, eventId }
   const [secondsLeft, setSecondsLeft] = useState(FOCUS_MIN * 60);
   const [running, setRunning] = useState(false);
 
-  // カウントダウン
+
+  const disabled = !eventId || task.trim() === "";
+
+  const handleSave = () => {
+    if (!eventId) return;
+    onRegister({ eventId, task, note, sets });
+    onClose();
+  };
+
+  useEffect(() => {
+    if (eventTitle) {
+      setTask(eventTitle);
+    }
+  }, [eventTitle]);
+
   useEffect(() => {
     if (!running) return;
     const id = setInterval(() => {
       setSecondsLeft((s) => {
         if (s <= 1) {
-          // フェーズ切替
           if (phase === 'focus') {
             setPhase('break');
             return BREAK_MIN * 60;
@@ -38,6 +59,8 @@ const PomodoroPanel: React.FC<Props> = ({ isOpen, onClose, onRegister, eventId }
     }, 1000);
     return () => clearInterval(id);
   }, [running, phase]);
+
+  
 
   const fmt = (sec: number) =>
     `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
@@ -65,7 +88,6 @@ const PomodoroPanel: React.FC<Props> = ({ isOpen, onClose, onRegister, eventId }
           onChange={(e) => setNote(e.target.value)}
         />
 
-        {/* セット数カウンター */}
         <div className="flex items-center space-x-2">
           <span>セット数:</span>
           <button
@@ -79,7 +101,6 @@ const PomodoroPanel: React.FC<Props> = ({ isOpen, onClose, onRegister, eventId }
           >＋</button>
         </div>
 
-        {/* タイマー */}
         <div className="text-center text-4xl font-mono">
           {fmt(secondsLeft)}
         </div>
@@ -92,17 +113,12 @@ const PomodoroPanel: React.FC<Props> = ({ isOpen, onClose, onRegister, eventId }
           </button>
         </div>
 
-        {/* 登録 */}
         <button
-          onClick={() => {
-            if (!eventId) return; // 紐付くイベントがなければ何もしない
-            onRegister({ eventId, task, note, sets });
-            onClose();
-          }}
-          className="w-full py-2 bg-green-600 rounded hover:bg-green-700 mt-4 disabled:opacity-40"
-          disabled={!task.trim() || !eventId}
+          onClick={handleSave}
+          disabled={disabled}
+          className={`w-full py-2 rounded ${disabled ? "bg-gray-300" : "bg-red-500 text-white"}`}
         >
-          実績を保存
+          登録
         </button>
       </div>
     </div>

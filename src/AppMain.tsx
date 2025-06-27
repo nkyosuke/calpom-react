@@ -1,5 +1,4 @@
 import './App.css';
-import { addHours } from "date-fns";
 import { format } from "date-fns";
 import React, { useState, useEffect, useRef } from 'react'; 
 import { saveCalendarEvent } from './saveCalendarEvent';
@@ -29,11 +28,6 @@ type CalendarEvent = {
   end: string;
 };
 
-type PomodoroInput = {
-  task: string;
-  note: string;
-  sets: number;
-};
 function AppMain() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -46,6 +40,9 @@ function AppMain() {
   const [pomodoroDates, setPomodoroDates] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [pomodoroTasks, setPomodoroTasks] = useState([]); // 追加
+  const [selectedPomodoros, setSelectedPomodoros] = useState<PomodoroTask[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [pomodoroEventTitle, setPomodoroEventTitle] = useState<string | null>(null);
 
   useEffect(() => {
     const auth = getAuth();
@@ -179,6 +176,9 @@ function AppMain() {
     arg.jsEvent.preventDefault(); 
     const event = events.find(e => e.id === arg.event.id);
     if (event?.id.startsWith("pomodoro-")) return;
+    const related = pomodoroTasks.filter(p => p.eventId === event.id);
+    setSelectedPomodoros(related);
+
     if (event) {
       setEditingEvent(event);
       setNewEventTitle(event.title);
@@ -197,8 +197,11 @@ function AppMain() {
           ? event.end.split("T")[1].slice(0, 5)
           : format(new Date(event.end), "HH:mm")
       );// ✅ 終了時間をセット
-      setShowInput(true);
+      setShowInput(true);  
     }
+    setPomodoroEventTitle(event.title);
+    setSelectedEventId(arg.event.id);
+    setPanelOpen(false); 
   };
 
    // 🎯 モーダルを閉じる処理
@@ -366,6 +369,20 @@ function AppMain() {
             onChange={(e) => setNewEventEndTime(e.target.value)}
             className="border p-2 w-full mt-2"
           />
+          {selectedPomodoros.length > 0 && (
+          <div className="border-t pt-3">
+            <h3 className="font-semibold mb-2">この予定のポモドーロ実績</h3>
+            <ul className="space-y-1 text-sm">
+              {selectedPomodoros.map(p => (
+                <li key={p.id} className="flex items-center gap-2">
+                  <span className="text-red-500">🍅</span>
+                  <span>{p.task}</span>
+                  <span className="text-gray-400">x{p.sets}セット</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+    )}
           {editingEvent  ? (
             <div>
               <button
@@ -391,12 +408,12 @@ function AppMain() {
           )}
         </div>
       )}
-      <PomodoroFab onClick={() => setPanelOpen(true)} />
+      <PomodoroFab onClick={() => setPanelOpen(true) } disabled={!selectedEventId}/>
       <PomodoroPanel
         isOpen={panelOpen}
         onClose={() => setPanelOpen(false)}
         onRegister={handleRegister}
-        eventId={editingEvent ? editingEvent.id : null}
+        eventId={selectedEventId} 
       />
     </div>
   );
