@@ -1,26 +1,27 @@
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid'; // ✅ 時間単位のビューを追加
-import interactionPlugin from "@fullcalendar/interaction"; // ✅ `EventDropStopArg` をインポート
+import './App.css';
 import Tooltip from "./Tooltip";
 import { addHours } from "date-fns";
-import { DateClickArg } from "@fullcalendar/interaction"; // ✅ 型をインポート
-import { EventClickArg } from "@fullcalendar/core";
 import { format } from "date-fns";
-import React, { useState, useEffect, useRef } from 'react'; // useEffect をインポート
-import jaLocale from '@fullcalendar/core/locales/ja'; 
+import React, { useState, useEffect, useRef } from 'react'; 
 import { saveCalendarEvent } from './saveCalendarEvent';
 import { deleteCalendarEvent } from './deleteCalendarEvent';
 import { updateCalendarEvent } from './updateCalendarEvent';
-import { getCalendarEvents } from './getCalendarEvents'; // ✅ 追加
+import { getCalendarEvents } from './getCalendarEvents'; 
 import { getAuth, onAuthStateChanged, User ,signOut} from 'firebase/auth';
 import { auth } from './firebase';
-import SignIn from './auth/SignIn'; // 作成したコンポーネントをインポート
-import './App.css';
+import SignIn from './auth/SignIn'; 
 import PomodoroFab    from './components/PomodoroFab';
 import PomodoroPanel  from './components/PomodoroPanel';
 import { savePomodoroTask } from './pomodoro/savePomodoroTask';
 import { getPomodoroTasks } from './pomodoro/getPomodoroTasks';
+import { convertPomodoroToEvents } from './utils/convertPomodoroToEvents'; 
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid'; 
+import interactionPlugin from "@fullcalendar/interaction"; 
+import { DateClickArg } from "@fullcalendar/interaction"; 
+import { EventClickArg } from "@fullcalendar/core";
+import jaLocale from '@fullcalendar/core/locales/ja'; 
 
 type CalendarEvent = {
   id: string;
@@ -38,14 +39,13 @@ function AppMain() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [newEventTitle, setNewEventTitle] = useState("");
-  const [newEventStartTime, setNewEventStartTime] = useState("12:00"); // ✅ 開始時間
-  const [newEventEndTime, setNewEventEndTime] = useState("13:00"); // ✅ 終了時間
+  const [newEventStartTime, setNewEventStartTime] = useState("12:00"); //  開始時間
+  const [newEventEndTime, setNewEventEndTime] = useState("13:00"); //  終了時間
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [showInput, setShowInput] = useState(false);
   const [tooltip, setTooltip] = useState<{ top: number; left: number; title: string; start: string; end: string;} | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [pomodoroDates, setPomodoroDates] = useState<string[]>([]);
-
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -70,16 +70,34 @@ function AppMain() {
   }, []);
 
   useEffect(() => {
-  if (!user) return;
+    if (!user) return;
     getPomodoroTasks(user.uid).then((tasks) => {
       const uniqueDates = [...new Set(tasks.map((t) => t.date))];
       setPomodoroDates(uniqueDates);
     });
   }, [user]);
 
-  const handleDateClick = (arg: DateClickArg) => { // ✅ 正しい型に修正
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const [calendarEvents, pomodoroTasks] = await Promise.all([
+        getCalendarEvents(user.uid),
+        getPomodoroTasks(user.uid)
+      ]);
+      const normalizedCalendar = calendarEvents.map(e => ({
+        ...e,
+        start: new Date(e.start).toISOString(),
+        end: new Date(e.end).toISOString()
+    }));
+    const pomodoroEvents = convertPomodoroToEvents(pomodoroTasks);
+    setEvents([...normalizedCalendar, ...pomodoroEvents]);
+    setPomodoroDates([...new Set(pomodoroTasks.map(t => t.date))]);
+    })();
+  }, [user]);
+
+  const handleDateClick = (arg: DateClickArg) => { 
     console.log("📅 Selected Date:", arg.dateStr);
-    arg.jsEvent.preventDefault(); // 👈 これで自動スクロール抑止
+    arg.jsEvent.preventDefault(); 
     arg.jsEvent.stopPropagation();
     // クリックした日付を保存
     setSelectedDate(arg.dateStr);
@@ -87,7 +105,7 @@ function AppMain() {
     // 既存の背景色をリセット
     const previousSelected = document.querySelector('.selected-date');
     if (previousSelected) {
-    previousSelected.classList.remove('selected-date');
+      previousSelected.classList.remove('selected-date');
     }
 
     // クリックされた日付の背景色を変更
@@ -98,7 +116,7 @@ function AppMain() {
     setEditingEvent(null); // 編集モード解除
   };
   // useRef はここで定義
-  const calendarRef = useRef<FullCalendar | null>(null); // FullCalendar の参照を保持
+  const calendarRef = useRef<FullCalendar | null>(null);
   // Firebase 登録（ステップ2で実装）
   const handleRegister = async (input: PomodoroInput) => {
     await savePomodoroTask(input);
@@ -140,19 +158,20 @@ function AppMain() {
   };
 
   const deleteEvent = async () => {
-  if (editingEvent) {
-    // Firestore から削除
-    await deleteCalendarEvent(editingEvent.id);
+    if (editingEvent) {
+      // Firestore から削除
+      await deleteCalendarEvent(editingEvent.id);
 
-    // ローカル状態からも削除
-    setEvents(events.filter(e => e.id !== editingEvent.id));
-    closeModal();
-  }
-};
+      // ローカル状態からも削除
+      setEvents(events.filter(e => e.id !== editingEvent.id));
+      closeModal();
+    }
+  };
 
   const handleEventClick = (arg: EventClickArg) => {
     arg.jsEvent.preventDefault(); 
     const event = events.find(e => e.id === arg.event.id);
+    if (event?.id.startsWith("pomodoro-")) return;
     if (event) {
       setEditingEvent(event);
       setNewEventTitle(event.title);
@@ -186,29 +205,29 @@ function AppMain() {
   };
 
   // ① drag & drop／resize で呼ばれる共通ハンドラ
-const handleEventChange = async (arg: any) => {
-  const ev = arg.event;                         // FullCalendar の Event オブジェクト
-  const updated = {
-    id: ev.id,                                  // ← Firestore ドキュメント ID と一致
-    title: ev.title,
-    start: ev.startStr,
-    end:   ev.endStr,
+  const handleEventChange = async (arg: any) => {
+    const ev = arg.event;                         // FullCalendar の Event オブジェクト
+    const updated = {
+      id: ev.id,                                  // ← Firestore ドキュメント ID と一致
+      title: ev.title,
+      start: ev.startStr,
+      end:   ev.endStr,
+    };
+
+    // 1. ローカル state を更新
+    setEvents(prev =>
+      prev.map(e => (e.id === updated.id ? updated : e))
+    );
+
+    // 2. Firestore を更新
+    try {
+      await updateCalendarEvent({ ...updated, uid: user!.uid });
+      console.log('🔄 Firestore 更新 OK');
+    } catch (err) {
+      console.error('Firestore 更新失敗', err);
+    }
   };
-
-  // 1. ローカル state を更新
-  setEvents(prev =>
-    prev.map(e => (e.id === updated.id ? updated : e))
-  );
-
-  // 2. Firestore を更新
-  try {
-    await updateCalendarEvent({ ...updated, uid: user!.uid });
-    console.log('🔄 Firestore 更新 OK');
-  } catch (err) {
-    console.error('Firestore 更新失敗', err);
-  }
-};
- const handleLogout = async () => {
+  const handleLogout = async () => {
     await signOut(auth);
   };
 
@@ -235,8 +254,8 @@ const handleEventChange = async (arg: any) => {
     setTooltip(null); // マウスが離れたら非表示
   };
   const handleViewDidMount = () => {
-  setTooltip(null); // ビューが変わったときにツールチップを削除
-};
+    setTooltip(null); // ビューが変わったときにツールチップを削除
+  };
 
   useEffect(() => {
     // 画面サイズが変更されたときにカレンダーをリサイズ
