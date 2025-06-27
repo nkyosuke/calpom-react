@@ -52,3 +52,6 @@
   color: black;  /* 文字色 */
 }
 
+.fc-event:focus {
+  outline: none !important;
+}

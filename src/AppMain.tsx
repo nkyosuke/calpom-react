@@ -1,5 +1,4 @@
 import './App.css';
-import Tooltip from "./Tooltip";
 import { addHours } from "date-fns";
 import { format } from "date-fns";
 import React, { useState, useEffect, useRef } from 'react'; 
@@ -43,7 +42,6 @@ function AppMain() {
   const [newEventEndTime, setNewEventEndTime] = useState("13:00"); //  終了時間
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [showInput, setShowInput] = useState(false);
-  const [tooltip, setTooltip] = useState<{ top: number; left: number; title: string; start: string; end: string;} | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [pomodoroDates, setPomodoroDates] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
@@ -240,31 +238,6 @@ function AppMain() {
     await signOut(auth);
   };
 
-  const handleEventMouseEnter = (info: any) => {
-    const calendarApi = calendarRef.current?.getApi();
-    const viewType = calendarApi?.view?.type;
-
-    // 🎯 月ビュー（dayGridMonth）のみツールチップを表示
-    if (viewType !== 'dayGridMonth') return;
-
-    const rect = info.el.getBoundingClientRect();
-    const top = rect.top + window.scrollY;
-    const left = rect.left + window.scrollX;
-
-    setTooltip({
-      top,
-      left,
-      title: info.event.title,
-      start: info.event.start ? format(new Date(info.event.start), "HH:mm") : "",
-      end: info.event.end ? format(new Date(info.event.end), "HH:mm") : format(addHours(new Date(info.event.start), 1), "HH:mm"),
-    });
-  };
-  const handleEventMouseLeave = () => {
-    setTooltip(null); // マウスが離れたら非表示
-  };
-  const handleViewDidMount = () => {
-    setTooltip(null); // ビューが変わったときにツールチップを削除
-  };
 
   useEffect(() => {
     // 画面サイズが変更されたときにカレンダーをリサイズ
@@ -285,14 +258,12 @@ function AppMain() {
     return <SignIn />;
   }
   return (  
-   <div className="calendar-container">
+   <div className="calendar-container" style={{ overflow: 'hidden' }}>
        <div className="flex justify-end p-2">
         <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">
           ログアウト
         </button>
       </div>
-      {/* ✅ ホバー時のツールチップ表示 */}
-      <Tooltip tooltip={tooltip} />   {/* ← Portal に差し替え */}
       <FullCalendar 
         ref={calendarRef} // FullCalendar の参照を渡す
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} // ✅ timeGridPlugin を追加
@@ -315,9 +286,6 @@ function AppMain() {
         editable={true} // ✅ 予定を編集可能にする
         droppable={true} // ✅ ドロップ可能にする
         height={420} // 固定の高さを設定
-        viewDidMount={handleViewDidMount}  // ← ここに追加
-        eventMouseEnter={handleEventMouseEnter} // ✅ ホバー時の処理
-        eventMouseLeave={handleEventMouseLeave} // ✅ ホバー解除時の処理
         selectable={true}       // ← これが日付選択などを許可
         dayCellContent={(arg) => {
           const dateStr = arg.date.toISOString().split('T')[0];
@@ -343,11 +311,11 @@ function AppMain() {
           const dateStr = arg.dateStr; // 'YYYY-MM-DD'
           const hasPomodoro = pomodoroDates.includes(dateStr);
           return (
-          <>
-            <b>{arg.timeText}</b>
-            <i>{arg.event.title}</i>
-            {hasPomodoro && <span className="text-red-500 text-xs ml-1">●</span>}
-          </>
+            <div tabIndex={-1} style={{ outline: 'none' }}>
+              <b>{arg.timeText}</b>
+              <i>{arg.event.title}</i>
+              {hasPomodoro && <span className="text-red-500 text-xs ml-1">●</span>}
+            </div>
           );
         }}
       />
