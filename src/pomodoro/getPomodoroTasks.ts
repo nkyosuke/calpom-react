@@ -1,5 +1,5 @@
 // src/pomodoro/getPomodoroTasks.ts
-import { collectionGroup, getDocs } from 'firebase/firestore';
+import { collectionGroup, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export type PomodoroTask = {
@@ -8,24 +8,35 @@ export type PomodoroTask = {
   task: string;
   note: string;
   sets: number;
-  start: string;      // ISO 文字列
-  date:  string;      // YYYY-MM-DD
-  uid:   string;      // ← 残していても OK
+  start: string;   // ISO 文字列
+  date:  string;   // YYYY-MM-DD
+  uid:   string;
 };
 
 /**
- * ログインユーザーの pomodoros サブコレクションを横断取得
- * users/{uid}/events/{eventId}/pomodoros/{pid}
+ * uid で横断取得。eventId を渡すとそのイベントの実績だけを取得します
+ *
+ * @param uid        ログインユーザー UID（必須）
+ * @param eventId?   予定のドキュメントID（省略可）
  */
-export const getPomodoroTasks = async (uid: string): Promise<PomodoroTask[]> => {
-  // uid フィールドを残しているなら ↓を再追加
-  // const q = query(collectionGroup(db, 'pomodoros'), where('uid', '==', uid));
+export const getPomodoroTasks = async (
+  uid: string,
+  eventId?: string
+): Promise<PomodoroTask[]> => {
+  // 基本フィルター
+  let q = query(collectionGroup(db, 'pomodoros'), where('uid', '==', uid));
 
-  // uid フィールドを省いた場合はフィルター不要
-  const snap = await getDocs(collectionGroup(db, 'pomodoros'));
+  // イベント単位で絞り込みたい場合
+  if (eventId) {
+    q = query(
+      collectionGroup(db, 'pomodoros'),
+      where('uid', '==', uid),
+      where('eventId', '==', eventId)
+    );
+    // ※ uid + eventId の複合インデックスが無い場合、
+    //    コンソールに表示されるリンクから作成してください
+  }
 
-  // 自分の uid だけを抽出
-  return snap.docs
-    .filter(d => (d.data() as any).uid === uid)      // ← 必要に応じて追加
-    .map(d => ({ id: d.id, ...(d.data() as Omit<PomodoroTask, 'id'>) }));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...(d.data() as Omit<PomodoroTask, 'id'>) }));
 };

@@ -55,3 +55,7 @@
 .fc-event:focus {
   outline: none !important;
 }
+
+.fc-event {
+  outline: none !important;
+}

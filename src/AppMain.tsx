@@ -19,6 +19,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { DateClickArg } from "@fullcalendar/interaction"; 
 import { EventClickArg } from "@fullcalendar/core";
 import jaLocale from '@fullcalendar/core/locales/ja'; 
+import type { PomodoroTask } from './pomodoro/getPomodoroTasks';
 
 type CalendarEvent = {
   id: string;
@@ -41,6 +42,7 @@ function AppMain() {
   const [pomodoroTasks, setPomodoroTasks] = useState([]); // 追加
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [pomodoroEventTitle, setPomodoroEventTitle] = useState<string | null>(null);
+  const [selectedPomodoros, setSelectedPomodoros] = useState<PomodoroTask[]>([]);
 
   useEffect(() => {
     const auth = getAuth();
@@ -84,7 +86,7 @@ function AppMain() {
         start: new Date(e.start).toISOString(),
         end: new Date(e.end).toISOString()
     }));
-    setEvents([normalizedCalendar]);
+    setEvents(normalizedCalendar);
     setPomodoroDates([...new Set(pomodoroTasks.map(t => t.date))]);
     })();
   }, [user]);
@@ -184,7 +186,7 @@ function AppMain() {
     }
   };
 
-  const handleEventClick = (arg: EventClickArg) => {
+  const handleEventClick = async (arg: EventClickArg) => {
     arg.jsEvent.preventDefault(); 
     const event = events.find(e => e.id === arg.event.id);
     if (event?.id.startsWith("pomodoro-")) return;
@@ -208,6 +210,10 @@ function AppMain() {
           : format(new Date(event.end), "HH:mm")
       );// ✅ 終了時間をセット
       setShowInput(true);  
+    }
+    if (user) {
+      const tasks = await getPomodoroTasks(user.uid, event.id);
+      setSelectedPomodoros(tasks); // ✅ 実績をセット
     }
     setPomodoroEventTitle(event.title);
     setSelectedEventId(arg.event.id);
@@ -426,7 +432,7 @@ function AppMain() {
         onRegister={handleRegister}
         eventId={selectedEventId} 
         eventTitle={pomodoroEventTitle}
-        tasks={pomodoroTasks}
+        tasks={selectedPomodoros}
       />
     </div>
   );

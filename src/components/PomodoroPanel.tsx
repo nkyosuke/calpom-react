@@ -128,13 +128,13 @@ const PomodoroPanel: React.FC<Props> = ({ isOpen, onClose, onRegister, eventId ,
        <div className="mt-4">
           <h3 className="text-sm text-gray-400">本日の実績</h3>
           <ul className="text-xs max-h-40 overflow-y-auto">
-            {tasks
-            .filter(t => t.date === format(new Date(), 'yyyy-MM-dd')) // ← 日付一致
-            .map(t => (
-            <li key={t.id} className="py-1 border-b border-gray-700">
-              🍅 {t.task}（{t.sets}セット）
-            </li>
-          ))}
+            {tasks.length === 0 && <p className="text-xs text-gray-400">実績はまだありません</p>}
+            {tasks.map((r) => (
+              <div key={r.id} className="text-xs text-gray-200 border-b border-gray-700 py-1">
+              ✅ {r.task}（{r.sets}セット）<br />
+              🕒 {new Date(r.start).toLocaleTimeString()}
+              </div>
+           ))}
           </ul>
         </div>
       )}
