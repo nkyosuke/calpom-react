@@ -170,11 +170,17 @@ function AppMain() {
   const deleteEvent = async () => {
     if (editingEvent) {
       // Firestore から削除
-      await deleteCalendarEvent(editingEvent.id);
-
-      // ローカル状態からも削除
-      setEvents(events.filter(e => e.id !== editingEvent.id));
-      closeModal();
+      try{
+        const uid = user?.uid;
+        if (!uid) throw new Error("uidが未取得");
+        await deleteCalendarEvent(uid,editingEvent.id);
+        // ローカル状態からも削除
+        setEvents(events.filter(e => e.id !== editingEvent.id));
+        closeModal();
+      } catch (err) {
+        console.error('❌ イベント削除処理中にエラー:', err);
+        alert('イベントの削除に失敗しました');
+      }     
     }
   };
 
