@@ -414,6 +414,7 @@ function AppMain() {
         onClose={() => setPanelOpen(false)}
         onRegister={handleRegister}
         eventId={selectedEventId} 
+        eventTitle={pomodoroEventTitle}
       />
     </div>
   );
