@@ -1,5 +1,6 @@
+import { doc, setDoc } from 'firebase/firestore';
 import { db } from './firebase';
-import {  setDoc, doc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth'; 
 
 export type CalendarEvent = {
   id: string;
@@ -10,5 +11,13 @@ export type CalendarEvent = {
 };
 
 export const saveCalendarEvent = async (event: CalendarEvent) => {
-  await setDoc(doc(db, 'calendarEvents', event.id), event);
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (!user) {
+    throw new Error("ユーザーがログインしていません");
+  }
+
+  const docRef = doc(db, 'users', user.uid, 'events', event.id);
+  await setDoc(docRef, event);
 };

@@ -19,8 +19,8 @@ export const savePomodoroTask = async ({ eventId, task, note, sets }: PomodoroTa
   }
 
   const uid = user.uid;
+  const now = new Date();
   const timestamp = Date.now().toString();
-  const now = new Date().toISOString();
 
   const pomodoroData = {
     id: timestamp,
@@ -28,7 +28,8 @@ export const savePomodoroTask = async ({ eventId, task, note, sets }: PomodoroTa
     task,
     note,
     sets,
-    start: now,
+    start: now.toISOString(),
+    date:  now.toISOString().split('T')[0],
     uid,
   };
 

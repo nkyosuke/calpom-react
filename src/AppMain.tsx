@@ -12,7 +12,6 @@ import PomodoroFab    from './components/PomodoroFab';
 import PomodoroPanel  from './components/PomodoroPanel';
 import { savePomodoroTask } from './pomodoro/savePomodoroTask';
 import { getPomodoroTasks } from './pomodoro/getPomodoroTasks';
-import { convertPomodoroToEvents } from './utils/convertPomodoroToEvents'; 
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid'; 
@@ -40,7 +39,6 @@ function AppMain() {
   const [pomodoroDates, setPomodoroDates] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [pomodoroTasks, setPomodoroTasks] = useState([]); // 追加
-  const [selectedPomodoros, setSelectedPomodoros] = useState<PomodoroTask[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [pomodoroEventTitle, setPomodoroEventTitle] = useState<string | null>(null);
 
@@ -86,8 +84,7 @@ function AppMain() {
         start: new Date(e.start).toISOString(),
         end: new Date(e.end).toISOString()
     }));
-    const pomodoroEvents = convertPomodoroToEvents(pomodoroTasks);
-    setEvents([...normalizedCalendar, ...pomodoroEvents]);
+    setEvents([normalizedCalendar]);
     setPomodoroDates([...new Set(pomodoroTasks.map(t => t.date))]);
     })();
   }, [user]);
@@ -98,6 +95,15 @@ function AppMain() {
     arg.jsEvent.stopPropagation();
     // クリックした日付を保存
     setSelectedDate(arg.dateStr);
+    setEditingEvent(null); // 編集モードを解除
+
+    // 入力欄を初期化
+    setNewEventTitle("");
+    setNewEventStartTime("12:00");
+    setNewEventEndTime("13:00");
+    // 選択された日付のイベントを初期化
+    setSelectedEventId(null);
+    setPomodoroEventTitle(null);
 
     // 既存の背景色をリセット
     const previousSelected = document.querySelector('.selected-date');
@@ -176,8 +182,6 @@ function AppMain() {
     arg.jsEvent.preventDefault(); 
     const event = events.find(e => e.id === arg.event.id);
     if (event?.id.startsWith("pomodoro-")) return;
-    const related = pomodoroTasks.filter(p => p.eventId === event.id);
-    setSelectedPomodoros(related);
 
     if (event) {
       setEditingEvent(event);
@@ -369,6 +373,7 @@ function AppMain() {
             onChange={(e) => setNewEventEndTime(e.target.value)}
             className="border p-2 w-full mt-2"
           />
+          {/*
           {selectedPomodoros.length > 0 && (
           <div className="border-t pt-3">
             <h3 className="font-semibold mb-2">この予定のポモドーロ実績</h3>
@@ -382,7 +387,7 @@ function AppMain() {
               ))}
             </ul>
           </div>
-    )}
+          )}*/}
           {editingEvent  ? (
             <div>
               <button
@@ -415,6 +420,7 @@ function AppMain() {
         onRegister={handleRegister}
         eventId={selectedEventId} 
         eventTitle={pomodoroEventTitle}
+        tasks={pomodoroTasks}
       />
     </div>
   );

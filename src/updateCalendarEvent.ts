@@ -4,7 +4,7 @@ import { CalendarEvent } from './saveCalendarEvent';
 
 export const updateCalendarEvent = async (event: CalendarEvent) => {
   try {
-    const docRef = doc(db, 'events', event.id);
+    const docRef = doc(db,'users',uid,'events',eventId);
     await updateDoc(docRef, {
       title: event.title,
       start: event.start,

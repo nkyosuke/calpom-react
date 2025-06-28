@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { format } from 'date-fns';
 
 type PomodoroInput = {
   task: string;
@@ -13,12 +14,13 @@ type Props = {
   onRegister: (input: PomodoroInput) => void;
   eventId: string | null;
   eventTitle: string | null;
+  tasks: PomodoroTask[];
 };
 
 const FOCUS_MIN = 25;
 const BREAK_MIN = 5;
 
-const PomodoroPanel: React.FC<Props> = ({ isOpen, onClose, onRegister, eventId ,eventTitle}) => {
+const PomodoroPanel: React.FC<Props> = ({ isOpen, onClose, onRegister, eventId ,eventTitle,tasks}) => {
   const [task, setTask] = useState('');
   const [note, setNote] = useState('');
   const [sets, setSets] = useState(1);
@@ -80,6 +82,7 @@ const PomodoroPanel: React.FC<Props> = ({ isOpen, onClose, onRegister, eventId ,
           placeholder="タスク名"
           value={task}
           onChange={(e) => setTask(e.target.value)}
+          readOnly={!!eventTitle} // イベントタイトルがある場合は読み取り専用
         />
         <textarea
           className="w-full px-3 py-2 h-20 rounded bg-gray-800 placeholder-gray-400 focus:outline-none"
@@ -121,6 +124,20 @@ const PomodoroPanel: React.FC<Props> = ({ isOpen, onClose, onRegister, eventId ,
           登録
         </button>
       </div>
+      {tasks && (
+       <div className="mt-4">
+          <h3 className="text-sm text-gray-400">本日の実績</h3>
+          <ul className="text-xs max-h-40 overflow-y-auto">
+            {tasks
+            .filter(t => t.date === format(new Date(), 'yyyy-MM-dd')) // ← 日付一致
+            .map(t => (
+            <li key={t.id} className="py-1 border-b border-gray-700">
+              🍅 {t.task}（{t.sets}セット）
+            </li>
+          ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

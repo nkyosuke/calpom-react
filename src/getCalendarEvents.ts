@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection,getDocs } from "firebase/firestore";
 import { db } from "./firebase";
 
 export type CalendarEvent = {
@@ -9,11 +9,8 @@ export type CalendarEvent = {
   uid: string;
 };
 
-export const getCalendarEvents = async (uid: string): Promise<CalendarEvent[]> => {
-  const q = query(collection(db, "calendarEvents"), where("uid", "==", uid));
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...(doc.data() as Omit<CalendarEvent, "id">),
-  }));
+export const getCalendarEvents = async (uid: string) => {
+  const ref = collection(db, 'users', uid, 'events');
+  const snap = await getDocs(ref);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 };
