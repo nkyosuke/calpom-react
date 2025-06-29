@@ -5,14 +5,22 @@ import {
   PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
+import CalendarHeatmap from 'react-calendar-heatmap';
+import 'react-calendar-heatmap/dist/styles.css';
 import type { PomodoroTask } from '../pomodoro/getPomodoroTasks';
 import { eachDayOfInterval, format, subDays } from 'date-fns';
+import { startOfYear, endOfMonth } from 'date-fns';
 
+/* ---------- 定数 ---------- */
 const COLORS = ['#ef4444', '#f97316', '#3b82f6', '#14b8a6'];
+const chartOptions = ['bar', 'line', 'pie', 'stack', 'heatmap', 'github'] as const;
+//const today = new Date();
+//const threeMonthsAgo = subDays(today, 90);
+//const sixMonthsAgo   = subDays(today, 180);
 
-const chartOptions = ['bar', 'line', 'pie', 'stack', 'heatmap'] as const;
 type ChartType = typeof chartOptions[number];
 
+/* ---------- props ---------- */
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -23,10 +31,11 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
   const [chartType, setChartType] = useState<ChartType>('bar');
 
   /* ---------- データ整形 ---------- */
-  // 1週間分（棒・折れ線・ヒートマップ）
+  // 直近 7 日
   const dailyData = useMemo(() => {
     const today = new Date();
-    const days = eachDayOfInterval({ start: subDays(today, 6), end: today });
+    const days  = eachDayOfInterval({ start: subDays(today, 6), end: today });
+
     const base: Record<string, number> =
       Object.fromEntries(days.map(d => [format(d, 'yyyy-MM-dd'), 0]));
 
@@ -40,16 +49,14 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
     }));
   }, [tasks]);
 
-  // パイチャート用
+  // Pie
   const pieData = useMemo(() => {
     const map = new Map<string, number>();
-    tasks.forEach(t => {
-      map.set(t.task, (map.get(t.task) || 0) + t.sets);
-    });
+    tasks.forEach(t => map.set(t.task, (map.get(t.task) || 0) + t.sets));
     return Array.from(map, ([name, value]) => ({ name, value }));
   }, [tasks]);
 
-  // 積み上げ棒グラフ用
+  // Stack
   const stacked = useMemo(() => {
     const base: Record<string, Record<string, number>> = {};
     tasks.forEach(({ task, date, sets }) => {
@@ -65,17 +72,38 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
     [tasks],
   );
 
+  // GitHub 風ヒートマップ用
+  const heatmapValues = useMemo( () =>
+    tasks.map(t => ({
+      date: t.date,        // 'YYYY-MM-DD'
+      count: t.sets,       // 濃さの判定用
+    })),
+  [tasks],
+ );
+
   /* ---------- guard 判定 ---------- */
-  const noData    = tasks.length === 0;
+  const noData = tasks.length === 0;
   const noStack   = chartType === 'stack'   && taskKeys.length === 0;
   const noPie     = chartType === 'pie'     && pieData.length  === 0;
-  const noHeatBar = chartType === 'heatmap' && dailyData.every(d => d.sets === 0);
+  const noHeatBar   = chartType === 'heatmap' && dailyData.every(d => d.sets === 0);
+  const noGitHubMap = chartType === 'github'  && heatmapValues.every(v => v.count === 0);
+  // データを2分割
+  //const upperHeatmap = heatmapValues.filter(v => new Date(v.date) >= sixMonthsAgo && new Date(v.date) < threeMonthsAgo);
+  //const lowerHeatmap = heatmapValues.filter(v => new Date(v.date) >= threeMonthsAgo && new Date(v.date) <= today);
+  const today = new Date();
+  const yearStart = startOfYear(today);  // 1月1日
+  const juneEnd = endOfMonth(new Date(today.getFullYear(), 5)); // 6月30日
+  const decEnd  = endOfMonth(new Date(today.getFullYear(), 11)); // 12月31日
+  const heatTop = heatmapValues.filter(
+    v => new Date(v.date) >= yearStart && new Date(v.date) <= juneEnd
+  );
+  const heatBottom = heatmapValues.filter(
+    v => new Date(v.date) > juneEnd && new Date(v.date) <= decEnd
+  );
 
-  // *ResponsiveContainer* を描画してよいか？
-  const canDraw =
-    !noData && !noStack && !noPie && !noHeatBar;
+  const canDraw = !noData && !noStack && !noPie && !noHeatBar && !noGitHubMap;
 
-  /* ---------- チャート Element を組み立て ---------- */
+  /* ---------- チャート JSX ---------- */
   let chartEl: React.ReactElement | null = null;
 
   if (canDraw) {
@@ -87,10 +115,11 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
             <XAxis dataKey="date" />
             <YAxis allowDecimals={false} />
             <Tooltip />
-            <Bar dataKey="sets" fill="#ef4444" />
+            <Bar dataKey="sets" fill={COLORS[0]} />
           </BarChart>
         );
         break;
+
       case 'line':
         chartEl = (
           <LineChart data={dailyData}>
@@ -98,21 +127,17 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
             <XAxis dataKey="date" />
             <YAxis allowDecimals={false} />
             <Tooltip />
-            <Line type="monotone" dataKey="sets" stroke="#3b82f6" />
+            <Line type="monotone" dataKey="sets" stroke={COLORS[2]} />
           </LineChart>
         );
         break;
+
       case 'pie':
         chartEl = (
           <PieChart>
             <Tooltip />
-            <Pie
-              data={pieData}
-              dataKey="value"
-              nameKey="name"
-              outerRadius={110}
-              label
-            >
+            <Pie data={pieData} dataKey="value" nameKey="name"
+                 outerRadius={110} label>
               {pieData.map((_, i) => (
                 <Cell key={i} fill={COLORS[i % COLORS.length]} />
               ))}
@@ -120,6 +145,7 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
           </PieChart>
         );
         break;
+
       case 'stack':
         chartEl = (
           <BarChart data={stacked}>
@@ -128,11 +154,13 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
             <YAxis allowDecimals={false} />
             <Tooltip />
             {taskKeys.map((k, i) => (
-              <Bar key={k} dataKey={k} stackId="a" fill={COLORS[i % COLORS.length]} />
+              <Bar key={k} dataKey={k} stackId="a"
+                   fill={COLORS[i % COLORS.length]} />
             ))}
           </BarChart>
         );
         break;
+
       case 'heatmap':
         chartEl = (
           <BarChart data={dailyData}>
@@ -140,40 +168,81 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
             <Tooltip />
             <Bar dataKey="sets">
               {dailyData.map((d, i) => (
-                <Cell key={i} fill={`rgba(255,0,0,${d.sets / 10})`} />
+                <Cell key={i}
+                      fill={`rgba(239,68,68,${d.sets / 10 || 0.05})`} />
               ))}
             </Bar>
           </BarChart>
         );
         break;
+
+      case 'github':
+        chartEl = (
+          <div className="overflow-x-auto space-y-4 scale-[0.85] origin-top-left">
+            <CalendarHeatmap
+              startDate={yearStart}
+              endDate={juneEnd}
+              values={heatTop}
+              classForValue={(v) => {
+                if (!v || v.count === 0) return 'heat-empty';
+                if (v.count >= 8) return 'heat-4';
+                if (v.count >= 5) return 'heat-3';
+                if (v.count >= 3) return 'heat-2';
+                return 'heat-1';
+              }}
+              showWeekdayLabels={false}
+              tooltipDataAttrs={(v) =>
+                v?.date
+                ? { 'data-tip': `${v.date}: ${v.count ?? 0} セット` }
+                : undefined
+              }
+            />
+            <CalendarHeatmap
+              startDate={new Date(today.getFullYear(), 6, 1)}
+              endDate={decEnd}
+              values={heatBottom}
+              classForValue={(v) => {
+                if (!v || v.count === 0) return 'heat-empty';
+                if (v.count >= 8) return 'heat-4';
+                if (v.count >= 5) return 'heat-3';
+                if (v.count >= 3) return 'heat-2';
+                return 'heat-1';
+              }}
+              showWeekdayLabels={false}
+              tooltipDataAttrs={(v) =>
+                v?.date
+                ? { 'data-tip': `${v.date}: ${v.count ?? 0} セット` }
+                : undefined
+             }
+            />
+          </div>
+        );
+        break;  
+      }
     }
-  }
 
   /* ---------- UI ---------- */
   if (!isOpen) return null;
 
   return (
     <div className="fixed top-0 right-0 h-full w-96 bg-white shadow-xl z-40 flex flex-col">
+      {/* ヘッダー */}
       <div className="flex justify-between items-center p-4 border-b">
         <h2 className="text-lg font-semibold">Pomodoro 実績</h2>
-        <button
-          onClick={onClose}
-          className="text-gray-500 hover:text-black"
-        >
-          ✕
+        <button onClick={onClose}
+                className="text-gray-500 hover:text-black">
+          ×
         </button>
       </div>
 
-      {/* チャート選択ボタン */}
+      {/* ボタン */}
       <div className="flex gap-2 p-4 flex-wrap">
         {chartOptions.map(t => (
-          <button
-            key={t}
-            onClick={() => setChartType(t)}
-            className={`px-3 py-1 rounded ${
-              chartType === t ? 'bg-emerald-600 text-white' : 'bg-gray-200'
-            }`}
-          >
+          <button key={t}
+                  onClick={() => setChartType(t)}
+                  className={`px-3 py-1 rounded ${
+                    chartType === t ? 'bg-emerald-600 text-white'
+                                     : 'bg-gray-200'}`}>
             {t.toUpperCase()}
           </button>
         ))}
@@ -182,9 +251,13 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
       {/* 本体 */}
       <div className="flex-1 p-4">
         {canDraw ? (
-          <ResponsiveContainer width="100%" height="100%">
-            {chartEl}
-          </ResponsiveContainer>
+          chartType === 'github' ? (
+            chartEl
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              {chartEl}
+            </ResponsiveContainer>
+          )
         ) : (
           <p className="text-center text-gray-500 mt-20">
             {noData
