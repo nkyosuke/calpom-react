@@ -20,6 +20,8 @@ import { DateClickArg } from "@fullcalendar/interaction";
 import { EventClickArg } from "@fullcalendar/core";
 import jaLocale from '@fullcalendar/core/locales/ja'; 
 import type { PomodoroTask } from './pomodoro/getPomodoroTasks';
+import StatsFab   from './components/StatsFab';
+import StatsPanel from './components/StatsPanel';
 
 type CalendarEvent = {
   id: string;
@@ -39,10 +41,12 @@ function AppMain() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [pomodoroDates, setPomodoroDates] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  const [pomodoroTasks, setPomodoroTasks] = useState([]); // 追加
+  const [pomodoroTasks, setPomodoroTasks] = useState<PomodoroTask[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [pomodoroEventTitle, setPomodoroEventTitle] = useState<string | null>(null);
   const [selectedPomodoros, setSelectedPomodoros] = useState<PomodoroTask[]>([]);
+  const [statsOpen, setStatsOpen] = useState(false);
+  
 
   useEffect(() => {
     const auth = getAuth();
@@ -434,6 +438,8 @@ function AppMain() {
         eventTitle={pomodoroEventTitle}
         tasks={selectedPomodoros}
       />
+      <StatsFab   onClick={() => setStatsOpen(true)} />
+      <StatsPanel isOpen={statsOpen} onClose={() => setStatsOpen(false)} tasks={pomodoroTasks} />
     </div>
   );
 }
