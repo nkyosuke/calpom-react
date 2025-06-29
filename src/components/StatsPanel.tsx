@@ -1,4 +1,3 @@
-// src/components/StatsPanel.tsx
 import React, { useMemo, useState } from 'react';
 import {
   BarChart, Bar, LineChart, Line,
@@ -8,17 +7,19 @@ import {
 import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
 import type { PomodoroTask } from '../pomodoro/getPomodoroTasks';
-import { eachDayOfInterval, format, subDays } from 'date-fns';
-import { startOfYear, endOfMonth } from 'date-fns';
+import {
+  eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval,
+  format, subDays, subWeeks, subMonths, startOfWeek,
+  startOfYear, endOfMonth,
+} from 'date-fns';
 
 /* ---------- 定数 ---------- */
 const COLORS = ['#ef4444', '#f97316', '#3b82f6', '#14b8a6'];
 const chartOptions = ['bar', 'line', 'pie', 'stack', 'heatmap', 'github'] as const;
-//const today = new Date();
-//const threeMonthsAgo = subDays(today, 90);
-//const sixMonthsAgo   = subDays(today, 180);
+const timeRanges  = ['daily', 'weekly', 'monthly'] as const;
 
-type ChartType = typeof chartOptions[number];
+type ChartType   = typeof chartOptions[number];
+type TimeRange   = typeof timeRanges[number];
 
 /* ---------- props ---------- */
 interface Props {
@@ -28,78 +29,97 @@ interface Props {
 }
 
 const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
-  const [chartType, setChartType] = useState<ChartType>('bar');
+  const [chartType, setChartType]   = useState<ChartType>('bar');
+  const [timeRange, setTimeRange]   = useState<TimeRange>('daily');
 
-  /* ---------- データ整形 ---------- */
-  // 直近 7 日
-  const dailyData = useMemo(() => {
-    const today = new Date();
-    const days  = eachDayOfInterval({ start: subDays(today, 6), end: today });
+  /* ---------- データ抽出 & フィルタリング ---------- */
+  const today = new Date();
 
-    const base: Record<string, number> =
-      Object.fromEntries(days.map(d => [format(d, 'yyyy-MM-dd'), 0]));
+  /**
+   * 選択中の timeRange に応じて対象期間を返却
+   */
+  const getPeriodStart = (range: TimeRange): Date => {
+    switch (range) {
+      case 'daily':   return subDays(today, 6);          // 直近 7 日間
+      case 'weekly':  return subWeeks(today, 11);        // 直近 12 週
+      case 'monthly': return subMonths(today, 11);       // 直近 12 ヶ月
+    }
+  };
 
-    tasks.forEach(t => {
-      base[t.date] = (base[t.date] || 0) + t.sets;
+  const periodStart = getPeriodStart(timeRange);
+
+  // 選択期間内のタスクだけを抽出
+  const filteredTasks = useMemo(() => (
+    tasks.filter(t => new Date(t.date) >= periodStart && new Date(t.date) <= today)
+  ), [tasks, periodStart, today]);
+
+  /* ---------- 集計ユーティリティ ---------- */
+  const labelForDate = (date: Date, range: TimeRange): string => {
+    switch (range) {
+      case 'daily':   return format(date, 'MM/dd');
+      case 'weekly':  return format(startOfWeek(date, { weekStartsOn: 1 }), "yy-'W'II");
+      case 'monthly': return format(date, 'yyyy/MM');
+    }
+  };
+
+  const generateBuckets = (range: TimeRange): Date[] => {
+    switch (range) {
+      case 'daily':   return eachDayOfInterval({ start: periodStart, end: today });
+      case 'weekly':  return eachWeekOfInterval({ start: periodStart, end: today }, { weekStartsOn: 1 });
+      case 'monthly': return eachMonthOfInterval({ start: periodStart, end: today });
+    }
+  };
+
+  /* ---------- 共通集計 ---------- */
+  const buckets = useMemo(() => generateBuckets(timeRange), [timeRange, periodStart]);
+
+  // Bar / Line 用
+  const aggregatedData = useMemo(() => {
+    const base: Record<string, number> = Object.fromEntries(
+      buckets.map(d => [labelForDate(d, timeRange), 0]),
+    );
+
+    filteredTasks.forEach(t => {
+      const key = labelForDate(new Date(t.date), timeRange);
+      base[key] = (base[key] || 0) + t.sets;
     });
 
-    return Object.entries(base).map(([date, sets]) => ({
-      date: format(new Date(date), 'MM/dd'),
-      sets,
-    }));
-  }, [tasks]);
+    return Object.entries(base).map(([label, sets]) => ({ label, sets }));
+  }, [filteredTasks, buckets, timeRange]);
 
-  // Pie
+  // Stack 用
+  const stackedData = useMemo(() => {
+    const base: Record<string, Record<string, number>> = {};
+    filteredTasks.forEach(({ task, date, sets }) => {
+      const key = labelForDate(new Date(date), timeRange);
+      base[key] = base[key] || {};
+      base[key][task] = (base[key][task] || 0) + sets;
+    });
+    return Object.entries(base).map(([label, v]) => ({ label, ...v }));
+  }, [filteredTasks, timeRange]);
+
+  // Pie 用
   const pieData = useMemo(() => {
     const map = new Map<string, number>();
-    tasks.forEach(t => map.set(t.task, (map.get(t.task) || 0) + t.sets));
+    filteredTasks.forEach(t => map.set(t.task, (map.get(t.task) || 0) + t.sets));
     return Array.from(map, ([name, value]) => ({ name, value }));
-  }, [tasks]);
+  }, [filteredTasks]);
 
-  // Stack
-  const stacked = useMemo(() => {
-    const base: Record<string, Record<string, number>> = {};
-    tasks.forEach(({ task, date, sets }) => {
-      const d = format(new Date(date), 'MM/dd');
-      base[d] = base[d] || {};
-      base[d][task] = (base[d][task] || 0) + sets;
-    });
-    return Object.entries(base).map(([date, v]) => ({ date, ...v }));
-  }, [tasks]);
-
-  const taskKeys = useMemo(
-    () => Array.from(new Set(tasks.map(t => t.task))),
+  // Heatmap / GitHub 風ヒートマップは年間を対象にするのでオリジナルのロジックを維持
+  const heatmapValues = useMemo(() =>
+    tasks.map(t => ({
+      date: t.date,
+      count: t.sets,
+    })),
     [tasks],
   );
 
-  // GitHub 風ヒートマップ用
-  const heatmapValues = useMemo( () =>
-    tasks.map(t => ({
-      date: t.date,        // 'YYYY-MM-DD'
-      count: t.sets,       // 濃さの判定用
-    })),
-  [tasks],
- );
-
   /* ---------- guard 判定 ---------- */
-  const noData = tasks.length === 0;
-  const noStack   = chartType === 'stack'   && taskKeys.length === 0;
-  const noPie     = chartType === 'pie'     && pieData.length  === 0;
-  const noHeatBar   = chartType === 'heatmap' && dailyData.every(d => d.sets === 0);
-  const noGitHubMap = chartType === 'github'  && heatmapValues.every(v => v.count === 0);
-  // データを2分割
-  //const upperHeatmap = heatmapValues.filter(v => new Date(v.date) >= sixMonthsAgo && new Date(v.date) < threeMonthsAgo);
-  //const lowerHeatmap = heatmapValues.filter(v => new Date(v.date) >= threeMonthsAgo && new Date(v.date) <= today);
-  const today = new Date();
-  const yearStart = startOfYear(today);  // 1月1日
-  const juneEnd = endOfMonth(new Date(today.getFullYear(), 5)); // 6月30日
-  const decEnd  = endOfMonth(new Date(today.getFullYear(), 11)); // 12月31日
-  const heatTop = heatmapValues.filter(
-    v => new Date(v.date) >= yearStart && new Date(v.date) <= juneEnd
-  );
-  const heatBottom = heatmapValues.filter(
-    v => new Date(v.date) > juneEnd && new Date(v.date) <= decEnd
-  );
+  const noData     = tasks.length === 0;
+  const noStack    = chartType === 'stack'   && stackedData.length === 0;
+  const noPie      = chartType === 'pie'     && pieData.length    === 0;
+  const noHeatBar  = chartType === 'heatmap' && aggregatedData.every(d => d.sets === 0);
+  const noGitHubMap= chartType === 'github'  && heatmapValues.every(v => v.count === 0);
 
   const canDraw = !noData && !noStack && !noPie && !noHeatBar && !noGitHubMap;
 
@@ -110,9 +130,9 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
     switch (chartType) {
       case 'bar':
         chartEl = (
-          <BarChart data={dailyData}>
+          <BarChart data={aggregatedData}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
+            <XAxis dataKey="label" />
             <YAxis allowDecimals={false} />
             <Tooltip />
             <Bar dataKey="sets" fill={COLORS[0]} />
@@ -122,9 +142,9 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
 
       case 'line':
         chartEl = (
-          <LineChart data={dailyData}>
+          <LineChart data={aggregatedData}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
+            <XAxis dataKey="label" />
             <YAxis allowDecimals={false} />
             <Tooltip />
             <Line type="monotone" dataKey="sets" stroke={COLORS[2]} />
@@ -136,8 +156,13 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
         chartEl = (
           <PieChart>
             <Tooltip />
-            <Pie data={pieData} dataKey="value" nameKey="name"
-                 outerRadius={110} label>
+            <Pie
+              data={pieData}
+              dataKey="value"
+              nameKey="name"
+              outerRadius={110}
+              label
+            >
               {pieData.map((_, i) => (
                 <Cell key={i} fill={COLORS[i % COLORS.length]} />
               ))}
@@ -147,15 +172,15 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
         break;
 
       case 'stack':
+        const taskKeys = Object.keys(stackedData[0] || {}).filter(k => k !== 'label');
         chartEl = (
-          <BarChart data={stacked}>
+          <BarChart data={stackedData}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
+            <XAxis dataKey="label" />
             <YAxis allowDecimals={false} />
             <Tooltip />
             {taskKeys.map((k, i) => (
-              <Bar key={k} dataKey={k} stackId="a"
-                   fill={COLORS[i % COLORS.length]} />
+              <Bar key={k} dataKey={k} stackId="a" fill={COLORS[i % COLORS.length]} />
             ))}
           </BarChart>
         );
@@ -163,13 +188,15 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
 
       case 'heatmap':
         chartEl = (
-          <BarChart data={dailyData}>
-            <XAxis dataKey="date" />
+          <BarChart data={aggregatedData}>
+            <XAxis dataKey="label" />
             <Tooltip />
             <Bar dataKey="sets">
-              {dailyData.map((d, i) => (
-                <Cell key={i}
-                      fill={`rgba(239,68,68,${d.sets / 10 || 0.05})`} />
+              {aggregatedData.map((d, i) => (
+                <Cell
+                  key={i}
+                  fill={`rgba(239,68,68,${d.sets / 10 || 0.05})`}
+                />
               ))}
             </Bar>
           </BarChart>
@@ -177,6 +204,12 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
         break;
 
       case 'github':
+        const yearStart = startOfYear(today);
+        const juneEnd   = endOfMonth(new Date(today.getFullYear(), 5)); // 6/30
+        const decEnd    = endOfMonth(new Date(today.getFullYear(), 11));
+        const heatTop   = heatmapValues.filter(v => new Date(v.date) >= yearStart && new Date(v.date) <= juneEnd);
+        const heatBottom= heatmapValues.filter(v => new Date(v.date) >  juneEnd   && new Date(v.date) <= decEnd);
+
         chartEl = (
           <div className="overflow-x-auto space-y-4 scale-[0.85] origin-top-left">
             <CalendarHeatmap
@@ -192,9 +225,7 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
               }}
               showWeekdayLabels={false}
               tooltipDataAttrs={(v) =>
-                v?.date
-                ? { 'data-tip': `${v.date}: ${v.count ?? 0} セット` }
-                : undefined
+                v?.date ? { 'data-tip': `${v.date}: ${v.count ?? 0} セット` } : undefined
               }
             />
             <CalendarHeatmap
@@ -210,16 +241,14 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
               }}
               showWeekdayLabels={false}
               tooltipDataAttrs={(v) =>
-                v?.date
-                ? { 'data-tip': `${v.date}: ${v.count ?? 0} セット` }
-                : undefined
-             }
+                v?.date ? { 'data-tip': `${v.date}: ${v.count ?? 0} セット` } : undefined
+              }
             />
           </div>
         );
-        break;  
-      }
+        break;
     }
+  }
 
   /* ---------- UI ---------- */
   if (!isOpen) return null;
@@ -229,24 +258,36 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
       {/* ヘッダー */}
       <div className="flex justify-between items-center p-4 border-b">
         <h2 className="text-lg font-semibold">Pomodoro 実績</h2>
-        <button onClick={onClose}
-                className="text-gray-500 hover:text-black">
-          ×
-        </button>
+        <button onClick={onClose} className="text-gray-500 hover:text-black">×</button>
       </div>
 
-      {/* ボタン */}
+      {/* グラフ種別ボタン */}
       <div className="flex gap-2 p-4 flex-wrap">
         {chartOptions.map(t => (
-          <button key={t}
-                  onClick={() => setChartType(t)}
-                  className={`px-3 py-1 rounded ${
-                    chartType === t ? 'bg-emerald-600 text-white'
-                                     : 'bg-gray-200'}`}>
+          <button
+            key={t}
+            onClick={() => setChartType(t)}
+            className={`px-3 py-1 rounded ${chartType === t ? 'bg-emerald-600 text-white' : 'bg-gray-200'}`}
+          >
             {t.toUpperCase()}
           </button>
         ))}
       </div>
+
+      {/* 期間切替ボタン */}
+      {['bar', 'line', 'stack', 'pie'].includes(chartType) && (
+        <div className="flex gap-2 px-4 pb-2 flex-wrap">
+          {timeRanges.map(r => (
+            <button
+              key={r}
+              onClick={() => setTimeRange(r)}
+              className={`px-3 py-1 rounded ${timeRange === r ? 'bg-indigo-600 text-white' : 'bg-gray-200'}`}
+            >
+              {r.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 本体 */}
       <div className="flex-1 p-4">
@@ -260,9 +301,7 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
           )
         ) : (
           <p className="text-center text-gray-500 mt-20">
-            {noData
-              ? 'データがありません'
-              : 'このグラフに表示できるデータがありません'}
+            {noData ? 'データがありません' : 'このグラフに表示できるデータがありません'}
           </p>
         )}
       </div>
