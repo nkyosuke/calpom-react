@@ -33,7 +33,7 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
   const [timeRange, setTimeRange]   = useState<TimeRange>('daily');
 
   /* ---------- データ抽出 & フィルタリング ---------- */
-  const today = new Date();
+  const today = useMemo(() => new Date(), []);
 
   /**
    * 選択中の timeRange に応じて対象期間を返却
@@ -62,16 +62,27 @@ const StatsPanel: React.FC<Props> = ({ isOpen, onClose, tasks }) => {
     }
   };
 
-  const generateBuckets = (range: TimeRange): Date[] => {
+ /* const generateBuckets = (range: TimeRange): Date[] => {
     switch (range) {
       case 'daily':   return eachDayOfInterval({ start: periodStart, end: today });
       case 'weekly':  return eachWeekOfInterval({ start: periodStart, end: today }, { weekStartsOn: 1 });
       case 'monthly': return eachMonthOfInterval({ start: periodStart, end: today });
     }
-  };
+  };*/
 
   /* ---------- 共通集計 ---------- */
-  const buckets = useMemo(() => generateBuckets(timeRange), [timeRange, periodStart]);
+  const buckets = useMemo(() => {
+  switch (timeRange) {
+    case 'daily':
+      return eachDayOfInterval({ start: periodStart, end: today });
+    case 'weekly':
+      return eachWeekOfInterval({ start: periodStart, end: today }, { weekStartsOn: 1 });
+    case 'monthly':
+      return eachMonthOfInterval({ start: periodStart, end: today });
+    default:
+      return [];
+  }
+  }, [timeRange, periodStart, today]);
 
   // Bar / Line 用
   const aggregatedData = useMemo(() => {
