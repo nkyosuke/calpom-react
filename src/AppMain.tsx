@@ -389,21 +389,6 @@ function AppMain() {
             onChange={(e) => setNewEventEndTime(e.target.value)}
             className="border p-2 w-full mt-2"
           />
-          {/*
-          {selectedPomodoros.length > 0 && (
-          <div className="border-t pt-3">
-            <h3 className="font-semibold mb-2">この予定のポモドーロ実績</h3>
-            <ul className="space-y-1 text-sm">
-              {selectedPomodoros.map(p => (
-                <li key={p.id} className="flex items-center gap-2">
-                  <span className="text-red-500">🍅</span>
-                  <span>{p.task}</span>
-                  <span className="text-gray-400">x{p.sets}セット</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          )}*/}
           {editingEvent  ? (
             <div>
               <button

@@ -98,7 +98,7 @@ const PomodoroPanel: React.FC<Props> = ({
 
   /* ---------- JSX ---------- */
   return (
-    <div className="fixed top-0 right-0 h-full w-80 bg-gray-900 text-white shadow-xl z-40 flex flex-col">
+    <div className="fixed top-0 right-0 h-full w-80 bg-gray-900 text-white shadow-xl z-50 flex flex-col">
       {/* ヘッダー */}
       <div className="flex justify-between items-center p-4 border-b border-gray-700">
         <h2 className="text-lg font-semibold">Pomodoro</h2>
