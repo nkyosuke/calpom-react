@@ -295,7 +295,7 @@ function AppMain() {
           center: 'title',
           right: 'dayGridMonth,timeGridWeek,timeGridDay'
         }}
-        initialView="dayGridMonth"
+        initialView="timeGridWeek"
         locales={[jaLocale]}
         locale='ja'
         scrollTime="08:00:00"
@@ -310,13 +310,11 @@ function AppMain() {
         droppable={true} // ✅ ドロップ可能にする
         height={420} // 固定の高さを設定
         selectable={true}       // ← これが日付選択などを許可
+        eventDisplay="block"
         dayCellContent={(arg) => {
-          const dateStr = arg.date.toISOString().split('T')[0];
-          const isPomodoroDone = pomodoroDates.includes(dateStr);
           return (
             <div className="fc-daygrid-day-number">
               {arg.dayNumberText}
-              {isPomodoroDone && <span className="ml-1 text-red-500">●</span>}
             </div>
           );
         }}
@@ -331,15 +329,22 @@ function AppMain() {
           });
         }}
         eventContent={(arg) => {
-          const dateStr = arg.dateStr; // 'YYYY-MM-DD'
-          const hasPomodoro = pomodoroDates.includes(dateStr);
-          return (
-            <div tabIndex={-1} style={{ outline: 'none' }}>
-              <b>{arg.timeText}</b>
-              <i>{arg.event.title}</i>
-              {hasPomodoro && <span className="text-red-500 text-xs ml-1">●</span>}
-            </div>
-          );
+          const viewType = arg.view.type; // 'dayGridMonth', 'timeGridWeek', 'timeGridDay'など
+          if (viewType === 'dayGridMonth') {
+            // 月表示用のシンプル1行表示
+            return (
+              <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {arg.event.title}
+              </div>
+            );
+          } else {
+            // 週・日表示用。複数行OKで時間も表示
+            return (
+              <div>
+                <b>{arg.event.title}</b>
+              </div>
+            );
+          }
         }}
       />
 

@@ -15,3 +15,12 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.fc-event {
+  overflow: hidden;       /* はみ出しは隠す */
+  white-space: normal;    /* 改行は許可 */
+  text-overflow: clip;    /* 省略はしない */
+  display: -webkit-box;   /* 折り返しのためにFlexboxの一種を使う */
+  -webkit-line-clamp: 2;  /* 最大2行まで表示 */
+  -webkit-box-orient: vertical;
+}
