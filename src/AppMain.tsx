@@ -54,16 +54,13 @@ function AppMain() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
     setUser(currentUser);
     if (currentUser) {
-      console.log("✅ ログインユーザーのUID:", currentUser.uid);
       const fetched = await getCalendarEvents(currentUser.uid);
-      console.log("fetched events:", fetched); // ← ここを確認
       setEvents(fetched);
       const normalized = fetched.map(e => ({
         ...e,
         start: new Date(e.start).toISOString(),
         end: new Date(e.end).toISOString()
       }));
-      console.log("カレンダーに渡す形式:", normalized);
       setEvents(normalized);
     }
   });
@@ -97,7 +94,6 @@ function AppMain() {
   }, [user]);
 
   const handleDateClick = (arg: DateClickArg) => { 
-    console.log("📅 Selected Date:", arg.dateStr);
     arg.jsEvent.preventDefault(); 
     arg.jsEvent.stopPropagation();
     // クリックした日付を保存
@@ -253,7 +249,6 @@ function AppMain() {
     // 2. Firestore を更新
     try {
       await updateCalendarEvent({ ...updated, uid: user!.uid });
-      console.log('🔄 Firestore 更新 OK');
     } catch (err) {
       console.error('Firestore 更新失敗', err);
     }
