@@ -22,6 +22,7 @@ import jaLocale from '@fullcalendar/core/locales/ja';
 import type { PomodoroTask } from './pomodoro/getPomodoroTasks';
 import StatsFab   from './components/StatsFab';
 import StatsPanel from './components/StatsPanel';
+import { parseISO } from "date-fns";
 
 type CalendarEvent = {
   id: string;
@@ -201,17 +202,17 @@ function AppMain() {
       setSelectedDate(
         typeof event.start === "string"
           ? event.start.split("T")[0]
-          : format(new Date(event.start), "yyyy-MM-dd")
+          : format(parseISO(event.start.toString()), "yyyy-MM-dd")
       );
       setNewEventStartTime(
         typeof event.start === "string"
           ? event.start.split("T")[1].slice(0, 5)
-          : format(new Date(event.start), "HH:mm")
+          : format(parseISO(event.start.toString()), "HH:mm")
       );// ✅ 開始時間をセット
       setNewEventEndTime(
         typeof event.end === "string"
           ? event.end.split("T")[1].slice(0, 5)
-          : format(new Date(event.end), "HH:mm")
+          : format(parseISO(event.end.toString()), "HH:mm")
       );// ✅ 終了時間をセット
       setShowInput(true);  
     }
