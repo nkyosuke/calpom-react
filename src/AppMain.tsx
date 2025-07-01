@@ -29,6 +29,7 @@ type CalendarEvent = {
   title: string;
   start: string;
   end: string;
+  allDay?: boolean;
 };
 
 function AppMain() {
@@ -76,22 +77,40 @@ function AppMain() {
     });
   }, [user]);
 
+  const loadHolidays = async (): Promise<CalendarEvent[]> => {
+    const res = await fetch("https://holidays-jp.github.io/api/v1/date.json");
+    const data = await res.json();
+    return Object.entries(data).map(([date, name]) => ({
+      id: `holiday-${date}`,
+      title: name as string,
+      start: date,
+      end: date,
+      allDay: true,
+      display: "background",
+      color: "#ffe4e4",
+      editable: false,
+    }));
+  };
+
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [calendarEvents, pomodoroTasks] = await Promise.all([
+      const [calendarEvents, pomodoroTasks, holidayEvents] = await Promise.all([
         getCalendarEvents(user.uid),
-        getPomodoroTasks(user.uid)
+        getPomodoroTasks(user.uid),
+        loadHolidays(),
       ]);
       const normalizedCalendar = calendarEvents.map(e => ({
         ...e,
         start: new Date(e.start).toISOString(),
         end: new Date(e.end).toISOString()
     }));
-    setEvents(normalizedCalendar);
+    setEvents([...normalizedCalendar, ...holidayEvents]);
     setPomodoroDates([...new Set(pomodoroTasks.map(t => t.date))]);
     })();
   }, [user]);
+
+  
 
   const handleDateClick = (arg: DateClickArg) => { 
     arg.jsEvent.preventDefault(); 
@@ -125,7 +144,7 @@ function AppMain() {
   const calendarRef = useRef<FullCalendar | null>(null);
   // Firebase 登録（ステップ2で実装）
   const handleRegister = async (input) => {
-    if (!editingEvent) return; // 紐付くイベントがなければ何もしない
+    if (!editingEvent || editingEvent.id.startsWith("holiday-")) return; // 紐付くイベントがなければ何もしない
     await savePomodoroTask({ ...input, eventId: editingEvent.id });
     // 実績を再取得
     if (user) {
@@ -190,6 +209,7 @@ function AppMain() {
   const handleEventClick = async (arg: EventClickArg) => {
     arg.jsEvent.preventDefault(); 
     const event = events.find(e => e.id === arg.event.id);
+    if (arg.event.id.startsWith("holiday-")) return; 
     if (event?.id.startsWith("pomodoro-")) return;
 
     if (event) {
@@ -240,6 +260,12 @@ function AppMain() {
       start: ev.startStr,
       end:   ev.endStr,
     };
+    if (ev.id.startsWith("holiday-")) {
+      // ← ドラッグ／リサイズで祝日が変更されないように元に戻す
+      ev.setStart(ev.start);
+      ev.setEnd(ev.end);
+      return;
+    }
 
     // 1. ローカル state を更新
     setEvents(prev =>
@@ -326,21 +352,40 @@ function AppMain() {
         }}
         eventContent={(arg) => {
           const viewType = arg.view.type; // 'dayGridMonth', 'timeGridWeek', 'timeGridDay'など
+          const isHoliday = arg.event.id.startsWith("holiday-"); // 祝日判定
+
+          const commonStyle: React.CSSProperties = {
+            color: isHoliday ? 'red' : undefined,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            fontWeight: isHoliday ? 'bold' : undefined,
+        };
           if (viewType === 'dayGridMonth') {
             // 月表示用のシンプル1行表示
             return (
-              <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={commonStyle}>
                 {arg.event.title}
               </div>
             );
           } else {
             // 週・日表示用。複数行OKで時間も表示
             return (
-              <div>
+              <div style={commonStyle}>
                 <b>{arg.event.title}</b>
               </div>
             );
           }
+        }}
+        dayCellDidMount={(arg) => {
+          const day = arg.date.getDay(); // 0:日, 6:土
+          if (day === 0) {
+          // 日曜日：背景を薄赤
+            arg.el.style.backgroundColor = '#ffe4e4';
+          } else if (day === 6) {
+          // 土曜日：背景を薄青
+            arg.el.style.backgroundColor = '#e4f0ff';
+          }       
         }}
       />
 
