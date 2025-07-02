@@ -41,7 +41,7 @@ function AppMain() {
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [showInput, setShowInput] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
-  const [pomodoroDates, setPomodoroDates] = useState<string[]>([]);
+  //const [pomodoroDates, setPomodoroDates] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [pomodoroTasks, setPomodoroTasks] = useState<PomodoroTask[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
@@ -72,8 +72,8 @@ function AppMain() {
     if (!user) return;
     getPomodoroTasks(user.uid).then((tasks) => {
       setPomodoroTasks(tasks);
-      const uniqueDates = [...new Set(tasks.map((t) => t.date))];
-      setPomodoroDates(uniqueDates);
+      //const uniqueDates = [...new Set(tasks.map((t) => t.date))];
+      //setPomodoroDates(uniqueDates);
     });
   }, [user]);
 
@@ -95,7 +95,7 @@ function AppMain() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [calendarEvents, pomodoroTasks, holidayEvents] = await Promise.all([
+      const [calendarEvents,, holidayEvents] = await Promise.all([
         getCalendarEvents(user.uid),
         getPomodoroTasks(user.uid),
         loadHolidays(),
@@ -104,9 +104,9 @@ function AppMain() {
         ...e,
         start: new Date(e.start).toISOString(),
         end: new Date(e.end).toISOString()
-    }));
-    setEvents([...normalizedCalendar, ...holidayEvents]);
-    setPomodoroDates([...new Set(pomodoroTasks.map(t => t.date))]);
+      }));
+      setEvents([...normalizedCalendar, ...holidayEvents]);
+      //setPomodoroDates([...new Set(pomodoroTasks.map(t => t.date))]);
     })();
   }, [user]);
 
@@ -150,7 +150,7 @@ function AppMain() {
     if (user) {
       const tasks = await getPomodoroTasks(user.uid);
       setPomodoroTasks(tasks);
-      setPomodoroDates([...new Set(tasks.map((t) => t.date))]);
+      //setPomodoroDates([...new Set(tasks.map((t) => t.date))]);
     }
   };
 
