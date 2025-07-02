@@ -8,6 +8,7 @@
     "@fullcalendar/interaction": "^6.1.15",
     "@fullcalendar/list": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
+    "@fullcalendar/rrule": "^6.1.18",
     "@fullcalendar/timegrid": "^6.1.15",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
@@ -25,6 +26,7 @@
     "react-scripts": "5.0.1",
     "react-toastify": "^11.0.5",
     "recharts": "^3.0.2",
+    "rrule": "^2.8.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
