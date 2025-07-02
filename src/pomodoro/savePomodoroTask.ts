@@ -38,7 +38,7 @@ export const savePomodoroTask = async ({ eventId, task, note, sets }: PomodoroTa
       doc(db, 'users', uid, 'events', eventId, 'pomodoros', timestamp), // ✅ 修正
       pomodoroData
     );
-    console.log('🔥 Pomodoro 登録成功:', pomodoroData);
+    console.log('🔥 Pomodoro 登録成功:');
   } catch (error) {
     console.error('❌ Pomodoro 登録失敗:', error);
     alert(`登録に失敗しました: ${error}`);

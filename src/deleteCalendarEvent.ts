@@ -4,7 +4,6 @@ import { collection,doc, deleteDoc,getDocs } from 'firebase/firestore';
 // Firestore からイベントを削除する関数
 export const deleteCalendarEvent = async (uid: string,eventId: string) => {
    // 🔍 ログで確認
-  console.log('✅ 削除対象 uid:', uid, 'eventId:', eventId);
    if (!uid || !eventId) {
     console.error('❌ uid または eventId が undefined です');
     return;
