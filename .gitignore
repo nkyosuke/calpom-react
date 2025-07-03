@@ -25,3 +25,7 @@ yarn-error.log*
 
 # Firebase
 .firebase/
+
+# Firebase / pglite logs
+pglite-debug.log
+santized-repo
