@@ -1,18 +1,22 @@
 // ✅ 新規登録画面（SignUp.tsx）
 import React, { useState } from 'react';
 import { registerWithEmail } from './authService';
+import { useNavigate } from 'react-router-dom';   // ← 追加
 
 const SignUp: React.FC = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<boolean>(false);
+  const [error, setError]       = useState<string | null>(null);
+  const [success, setSuccess]   = useState<boolean>(false);
+
+  const navigate = useNavigate();                // ← 追加
 
   const handleRegister = async () => {
     try {
-      await registerWithEmail(email, password);
+      await registerWithEmail(email.trim(), password);
       setSuccess(true);
       setError(null);
+      navigate('/');                             // 登録成功後トップへ
     } catch (err) {
       console.error('❌ 登録失敗:', err);
       setError('登録に失敗しました。');
@@ -39,14 +43,23 @@ const SignUp: React.FC = () => {
           className="w-full px-3 py-2 bg-gray-700 text-white rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
-        {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+        {error   && <p className="text-red-400 text-sm mb-4">{error}</p>}
         {success && <p className="text-green-400 text-sm mb-4">✅ 登録に成功しました！</p>}
 
+        {/* 登録ボタン */}
         <button
           onClick={handleRegister}
           className="bg-green-600 hover:bg-green-700 text-white py-2 rounded-md w-full transition duration-200"
         >
           登録する
+        </button>
+
+        {/* トップに戻るボタン */}
+        <button
+          onClick={() => navigate('/')}
+          className="mt-3 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-md w-full transition duration-200"
+        >
+          トップへ戻る
         </button>
       </div>
     </div>
