@@ -200,8 +200,8 @@ function AppMain() {
         setEvents(events.filter(e => e.id !== editingEvent.id));
         closeModal();
       } catch (err) {
-        console.error('❌ イベント削除処理中にエラー:', err);
         alert('イベントの削除に失敗しました');
+        console.error('❌ イベント削除処理中にエラー:', err);
       }     
     }
   };
