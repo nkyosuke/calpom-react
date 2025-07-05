@@ -16,7 +16,6 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid'; 
 import interactionPlugin from "@fullcalendar/interaction"; 
-//import { DateClickArg } from "@fullcalendar/interaction"; 
 import { EventClickArg } from "@fullcalendar/core";
 import jaLocale from '@fullcalendar/core/locales/ja'; 
 import type { PomodoroTask } from './pomodoro/getPomodoroTasks';
@@ -35,14 +34,8 @@ type CalendarEvent = {
 
 function AppMain() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  //const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  //const [newEventTitle, setNewEventTitle] = useState("");
-  //const [newEventStartTime, setNewEventStartTime] = useState("12:00"); //  開始時間
-  //const [newEventEndTime, setNewEventEndTime] = useState("13:00"); //  終了時間
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
-  //const [showInput, setShowInput] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
-  //const [pomodoroDates, setPomodoroDates] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [pomodoroTasks, setPomodoroTasks] = useState<PomodoroTask[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
@@ -159,58 +152,6 @@ function AppMain() {
       ? format(parseISO(d), 'HH:mm')
       : format(d, 'HH:mm');
   };
-
-  // 予定追加処理
-  /*const _addEvent = async () => {
-    if (selectedDate && newEventTitle.trim() !== "" && user) {
-      const newEvent: CalendarEvent = {
-        id: String(Date.now()),
-        title: newEventTitle,
-        start: `${selectedDate}T${newEventStartTime}`,
-        end: `${selectedDate}T${newEventEndTime}`,
-      };
-      try {
-        await saveCalendarEvent({ ...newEvent, uid: user.uid });
-        setEvents([...events, newEvent]);
-        closeModal();
-      } catch (error) {
-        alert('イベントの保存に失敗しました');
-        console.error(error);
-      }
-    }
-  };*/
-
-  /*const _updateEvent = () => {  
-    if (!user) return; // ユーザーがいない場合は処理しない
-    if (editingEvent && newEventTitle.trim() !== "") {
-      const updatedEvent: CalendarEvent = {
-        ...editingEvent,
-        title: newEventTitle,
-        start: `${selectedDate}T${newEventStartTime}`,
-        end: `${selectedDate}T${newEventEndTime}`,
-      };
-      setEvents(events.map(e => e.id === editingEvent.id ? updatedEvent : e));
-      saveCalendarEvent({ ...updatedEvent, uid: user.uid }); // ← Firebase 更新
-      closeModal();
-    }
-  };*/
-
-  /*const _deleteEvent = async () => {
-    if (editingEvent) {
-      // Firestore から削除
-      try{
-        const uid = user?.uid;
-        if (!uid) throw new Error("uidが未取得");
-        await deleteCalendarEvent(uid,editingEvent.id);
-        // ローカル状態からも削除
-        setEvents(events.filter(e => e.id !== editingEvent.id));
-        closeModal();
-      } catch (err) {
-        alert('イベントの削除に失敗しました');
-        console.error('❌ イベント削除処理中にエラー:', err);
-      }     
-    }
-  };*/
 
   const handleEventClick = async (arg: EventClickArg) => {
     arg.jsEvent.preventDefault();
@@ -455,7 +396,6 @@ function AppMain() {
           setSelectedEventId(null);
           setEditingEvent(null);
           setEditingEventData(null);
-          //setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
           openEventPanelOnly();
         }}
       >
