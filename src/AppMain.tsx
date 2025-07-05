@@ -48,6 +48,7 @@ function AppMain() {
   const [pomodoroEventTitle, setPomodoroEventTitle] = useState<string | null>(null);
   const [selectedPomodoros, setSelectedPomodoros] = useState<PomodoroTask[]>([]);
   const [statsOpen, setStatsOpen] = useState(false);
+  const HEADER_HEIGHT = 56;
   
 
   useEffect(() => {
@@ -302,176 +303,208 @@ function AppMain() {
   if (!user) {
     return <SignIn />;
   }
-  return (  
-   <div className="calendar-container" style={{ overflow: 'hidden' }}>
-       <div className="flex justify-end p-2">
-        <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">
-          ログアウト
-        </button>
-      </div>
-      <FullCalendar 
-        ref={calendarRef} // FullCalendar の参照を渡す
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} // ✅ timeGridPlugin を追加
+  return (
+  <div className="min-h-screen flex flex-col overflow-hidden pb-36 sm:pb-24 bg-white">
+    {/* ヘッダー */}
+    <header className="h-14 flex justify-end items-center px-4 shadow-sm bg-gray-100">
+      <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded text-sm">
+        ログアウト
+      </button>
+    </header>
+
+    {/* カレンダービュー */}
+    <main className="flex-1 overflow-hidden">
+      <FullCalendar
+        ref={calendarRef}
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          right: 'dayGridMonth,timeGridWeek,timeGridDay',
         }}
-        initialView="timeGridWeek"
+        height={typeof window !== 'undefined' && window.innerWidth < 640
+          ? `calc(100dvh - ${HEADER_HEIGHT}px)`
+          : 420}
+        titleFormat={{ year: 'numeric', month: 'long' }}
+        initialView={'timeGridWeek'}
+        slotLabelFormat={{
+          hour: '2-digit',
+          minute: '2-digit',
+          meridiem: false,
+          hour12: false,
+        }}
+        dayHeaderFormat={typeof window !== 'undefined' && window.innerWidth < 640
+          ? { weekday: 'short' }
+          : { weekday: 'short', day: 'numeric' }}
         locales={[jaLocale]}
-        locale='ja'
+        locale="ja"
         scrollTime="08:00:00"
         scrollTimeReset={false}
         events={events}
-        dateClick={handleDateClick} // 日付クリックイベント
-        eventClick={handleEventClick} // 予定クリックイベント追加
-        eventDrop={handleEventChange} // ✅ 予定をドラッグ＆ドロップで移動できるように追加
-        eventResize={handleEventChange}   // 長さ変更
-        eventChange={handleEventChange}   // （オプション）何らかの変更
-        editable={true} // ✅ 予定を編集可能にする
-        droppable={true} // ✅ ドロップ可能にする
-        height={420} // 固定の高さを設定
-        selectable={true}       // ← これが日付選択などを許可
+        dateClick={handleDateClick}
+        eventClick={handleEventClick}
+        eventDrop={handleEventChange}
+        eventResize={handleEventChange}
+        eventChange={handleEventChange}
+        editable
+        droppable
+        selectable
         eventDisplay="block"
-        dayCellContent={(arg) => {
-          return (
-            <div className="fc-daygrid-day-number">
-              {arg.dayNumberText}
-            </div>
-          );
-        }}
+        dayCellContent={(arg) => (
+          <div className="fc-daygrid-day-number">{arg.dayNumberText}</div>
+        )}
         eventAdd={(info) => {
           const event = info.event;
           saveCalendarEvent({
-            id: event.id, // ✅ 必須のIDを追加
+            id: event.id,
             title: event.title,
             start: event.start?.toISOString() || '',
             end: event.end?.toISOString() || '',
-            uid: user!.uid, // ✅ ログインユーザーのUID
+            uid: user!.uid,
           });
         }}
         eventContent={(arg) => {
-          const viewType = arg.view.type; // 'dayGridMonth', 'timeGridWeek', 'timeGridDay'など
-          const isHoliday = arg.event.id.startsWith("holiday-"); // 祝日判定
-
-          const commonStyle: React.CSSProperties = {
+          const isHoliday = arg.event.id.startsWith('holiday-');
+          const common: React.CSSProperties = {
             color: isHoliday ? 'red' : undefined,
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             fontWeight: isHoliday ? 'bold' : undefined,
-        };
-          if (viewType === 'dayGridMonth') {
-            // 月表示用のシンプル1行表示
-            return (
-              <div style={commonStyle}>
-                {arg.event.title}
-              </div>
-            );
-          } else {
-            // 週・日表示用。複数行OKで時間も表示
-            return (
-              <div style={commonStyle}>
-                <b>{arg.event.title}</b>
-              </div>
-            );
-          }
+          };
+          return (
+            <div style={common}>
+              {arg.view.type === 'dayGridMonth' ? arg.event.title : <b>{arg.event.title}</b>}
+            </div>
+          );
         }}
         dayCellDidMount={(arg) => {
-          const day = arg.date.getDay(); // 0:日, 6:土
-          if (day === 0) {
-          // 日曜日：背景を薄赤
-            arg.el.style.backgroundColor = '#ffe4e4';
-          } else if (day === 6) {
-          // 土曜日：背景を薄青
-            arg.el.style.backgroundColor = '#e4f0ff';
-          }       
+          const day = arg.date.getDay();
+          if (day === 0) arg.el.style.backgroundColor = '#ffe4e4';
+          else if (day === 6) arg.el.style.backgroundColor = '#e4f0ff';
         }}
       />
+    </main>
 
-      <button
-        onClick={() => {
+    {/* 予定追加 FAB（モバイルのみ） */}
+    <button
+      onClick={() => {
         setShowInput(true);
-        setSelectedDate(format(new Date(), "yyyy-MM-dd")); // 今日の日付をセット
+        setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
         setEditingEvent(null);
-        }}
-        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
-      ＋ 予定を追加
-      </button>
-      {/* 予定登録フォーム（モーダル風に表示） */}
-      {showInput && (
-        <div className="mt-4 p-4 border rounded shadow">
-          <h2 className="text-lg font-semibold">
-          {editingEvent ? "予定を編集" : "予定を追加"} ({selectedDate ? format(new Date(selectedDate), "yyyy-MM-dd") : ""})
-          </h2>
-          <input
-            type="text"
-            placeholder="予定を入力"
-            value={newEventTitle}
-            onChange={(e) => setNewEventTitle(e.target.value)}
-            className="border p-2 w-full mt-2"
-          />
-          {/* 日付選択 */}
-          <label>日付:</label>
-          <input 
-            type="date" 
-            value={selectedDate || ""} 
-            onChange={(e) => setSelectedDate(e.target.value)} 
-            className="border p-2 w-full mt-2"
-          />
-          {/* 開始時間 */}
-          <label>開始時間:</label>
-          <input
-            type="time"
-            value={newEventStartTime}
-            onChange={(e) => setNewEventStartTime(e.target.value)}
-            className="border p-2 w-full mt-2"
-          />
-          {/* 終了時間 */}
-          <label>終了時間:</label>
-          <input
-            type="time"
-            value={newEventEndTime}
-            onChange={(e) => setNewEventEndTime(e.target.value)}
-            className="border p-2 w-full mt-2"
-          />
-          {editingEvent  ? (
-            <div>
-              <button
-                onClick={updateEvent}
-                className="mt-2 bg-green-500 text-white px-4 py-2 rounded mr-2"
-              >
-                更新
-              </button>
-              <button
-                onClick={deleteEvent}
-                className="mt-2 bg-red-500 text-white px-4 py-2 rounded"
-              >
-                削除
-              </button>
-            </div>
-          ) : (
+      }}
+      className="fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-3 rounded-full shadow-lg sm:hidden"
+    >
+      ＋
+    </button>
+
+    {/* 予定追加 / 編集モーダル */}
+    {showInput && (
+      <div className="mt-4 p-4 border rounded shadow relative z-30 bg-white dark:bg-gray-800">
+        <h2 className="text-lg font-semibold">
+          {editingEvent ? '予定を編集' : '予定を追加'} ({selectedDate ? format(new Date(selectedDate), 'yyyy-MM-dd') : ''})
+        </h2>
+        <input
+          type="text"
+          placeholder="予定を入力"
+          value={newEventTitle}
+          onChange={(e) => setNewEventTitle(e.target.value)}
+          className="border p-2 w-full mt-2"
+        />
+        <label>日付:</label>
+        <input
+          type="date"
+          value={selectedDate || ''}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          className="border p-2 w-full mt-2"
+        />
+        <label>開始時間:</label>
+        <input
+          type="time"
+          value={newEventStartTime}
+          onChange={(e) => setNewEventStartTime(e.target.value)}
+          className="border p-2 w-full mt-2"
+        />
+        <label>終了時間:</label>
+        <input
+          type="time"
+          value={newEventEndTime}
+          onChange={(e) => setNewEventEndTime(e.target.value)}
+          className="border p-2 w-full mt-2"
+        />
+        {editingEvent ? (
+          <div>
             <button
-              onClick={addEvent}
-              className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
-            >
-              追加
-            </button>
-          )}
-        </div>
-      )}
-      <PomodoroFab onClick={() => setPanelOpen(true) } disabled={!selectedEventId}/>
-      <PomodoroPanel
-        isOpen={panelOpen}
-        onClose={() => setPanelOpen(false)}
-        onRegister={handleRegister}
-        eventId={selectedEventId} 
-        eventTitle={pomodoroEventTitle}
-        tasks={selectedPomodoros}
-      />
-      <StatsFab   onClick={() => setStatsOpen(true)} />
-      <StatsPanel isOpen={statsOpen} onClose={() => setStatsOpen(false)} tasks={pomodoroTasks} />
+              onClick={updateEvent}
+              className="mt-2 bg-green-500 text-white px-4 py-2 rounded mr-2"
+            >更新</button>
+            <button
+              onClick={deleteEvent}
+              className="mt-2 bg-red-500 text-white px-4 py-2 rounded"
+            >削除</button>
+          </div>
+        ) : (
+          <button
+            onClick={addEvent}
+            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
+          >追加</button>
+        )}
+      </div>
+    )}
+
+    {/* FAB: Pomodoro & Stats (固定表示) */}
+    {/* ✅ モバイル用フッターボタン：3つ横並び */}
+  <div className="fixed bottom-4 left-0 right-0 z-50 px-4 flex justify-between sm:hidden">
+    <button
+      onClick={() => {
+        setShowInput(true);
+        setSelectedDate(format(new Date(), "yyyy-MM-dd"));
+        setEditingEvent(null);
+      }}
+      className="bg-blue-500 text-white px-4 py-3 rounded-full shadow-lg w-1/3 mr-2"
+    >
+    ＋予定
+    </button>
+
+    <button
+      onClick={() => setPanelOpen(true)}
+      className="bg-red-500 text-white px-4 py-3 rounded-full shadow-lg w-1/3 mx-1"
+      disabled={!selectedEventId}
+    >
+      🍅
+    </button>
+
+    <button
+    onClick={() => setStatsOpen(true)}
+    className="bg-green-600 text-white px-4 py-3 rounded-full shadow-lg w-1/3 ml-2"
+    >
+    📊
+    </button>
+  </div>
+
+    {/* --- PC / タブレット用 FAB（従来の位置）--- */}
+    <div className="hidden sm:block fixed bottom-20 right-4 z-50">
+      <PomodoroFab onClick={() => setPanelOpen(true)} disabled={!selectedEventId} />
     </div>
+    <div className="hidden sm:block fixed bottom-36 right-4 z-50">
+      <StatsFab onClick={() => setStatsOpen(true)} />
+    </div>
+
+    {/* --- パネル群 --- */}
+    <PomodoroPanel
+      isOpen={panelOpen}
+      onClose={() => setPanelOpen(false)}
+      onRegister={handleRegister}
+      eventId={selectedEventId}
+      eventTitle={pomodoroEventTitle}
+      tasks={selectedPomodoros}
+    />
+    <StatsPanel
+      isOpen={statsOpen}
+      onClose={() => setStatsOpen(false)}
+      tasks={pomodoroTasks}
+    />
+  </div>
   );
 }
 

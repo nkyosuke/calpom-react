@@ -65,3 +65,13 @@
 .heat-2    { fill:#7bc96f }
 .heat-3    { fill:#239a3b }
 .heat-4    { fill:#196127 }
+
+.fc-toolbar-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #0c0c0c;
+  white-space: nowrap; /* 改行させない */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 1.25rem;
+}
