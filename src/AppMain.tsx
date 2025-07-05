@@ -121,35 +121,19 @@ function AppMain() {
 
   
 
-  /*const handleDateClick = (arg: DateClickArg) => { 
-    arg.jsEvent.preventDefault(); 
-    arg.jsEvent.stopPropagation();
-    // クリックした日付を保存
-    //setSelectedDate(arg.dateStr);
-    setEditingEvent(null); // 編集モードを解除
-
-    // 入力欄を初期化
-    setNewEventTitle("");
-    setNewEventStartTime("12:00");
-    setNewEventEndTime("13:00");
-    // 選択された日付のイベントを初期化
-    setSelectedEventId(null);
-    setPomodoroEventTitle(null);
-
-    // 既存の背景色をリセット
-    const previousSelected = document.querySelector('.selected-date');
-    if (previousSelected) {
-      previousSelected.classList.remove('selected-date');
+  const handleDateClick = (arg: DateClickArg) => {
+    arg.jsEvent.preventDefault();
+    /* クリックした日付に予定が無ければ選択解除 */
+    const dayEvents = events.filter((e) => e.start.startsWith(arg.dateStr));
+    if (dayEvents.length === 0) {
+      setSelectedEventId(null);
+      setPomodoroEventTitle(null);
+      setPanelOpen(false);
+      setStatsOpen(false);
+      setEditingEvent(null);
+      setEditingEventData(null);
     }
-
-    // クリックされた日付の背景色を変更
-    const clickedDateElement = document.querySelector(`[data-date="${arg.dateStr}"]`);
-    if (clickedDateElement) {
-      clickedDateElement.classList.add('selected-date');
-    }
-    setEditingEvent(null); // 編集モード解除
-  };*/
-  // useRef はここで定義
+  }
   const calendarRef = useRef<FullCalendar | null>(null);
   // Firebase 登録（ステップ2で実装）
   const handleRegister = async (input) => {
@@ -161,6 +145,19 @@ function AppMain() {
       setPomodoroTasks(tasks);
       //setPomodoroDates([...new Set(tasks.map((t) => t.date))]);
     }
+  };
+
+  const toDateStr = (d: string | Date) => {
+  // ISO 文字列なら parseISO、Dateならそのまま format
+  return typeof d === 'string'
+    ? format(parseISO(d), 'yyyy-MM-dd')
+    : format(d, 'yyyy-MM-dd');
+  };
+
+  const toTimeStr = (d: string | Date) => {
+    return typeof d === 'string'
+      ? format(parseISO(d), 'HH:mm')
+      : format(d, 'HH:mm');
   };
 
   // 予定追加処理
@@ -216,45 +213,33 @@ function AppMain() {
   };*/
 
   const handleEventClick = async (arg: EventClickArg) => {
-    arg.jsEvent.preventDefault(); 
-    const event = events.find(e => e.id === arg.event.id);
-    if (arg.event.id.startsWith("holiday-")) return; 
-    if (event?.id.startsWith("pomodoro-")) return;
-
-    if (event) {
-      setEditingEvent(event);
+    arg.jsEvent.preventDefault();
+    // 祝日や Pomodoro ダミーは無視
+    if (arg.event.id.startsWith('holiday-') || arg.event.id.startsWith('pomodoro-')) return;
+    // すでに選択中 → 2 回目のクリック：編集パネルを開く
+    if (selectedEventId === arg.event.id) {
+      const ev = events.find((e) => e.id === arg.event.id)!;
+      /* 編集用データを注入 */
+      setEditingEvent(ev);
       setEditingEventData({
-      title: event.title,
-      date: typeof event.start === 'string'
-        ? event.start.split('T')[0]
-        : format(parseISO(event.start.toString()), 'yyyy-MM-dd'),
-      start: typeof event.start === 'string'
-        ? event.start.split('T')[1].slice(0, 5)
-        : format(parseISO(event.start.toString()), 'HH:mm'),
-      end: typeof event.end === 'string'
-        ? event.end.split('T')[1].slice(0, 5)
-        : format(parseISO(event.end.toString()), 'HH:mm'),
+        title: ev.title,
+        date : toDateStr(ev.start),
+        start: toTimeStr(ev.start),
+        end  : toTimeStr(ev.end),
       });
-      setEventPanelOpen(true);
-    }
+      openEventPanelOnly();          // ← 他パネルを閉じ、EventPanel を開く
+      return;
+    } 
+    setSelectedEventId(arg.event.id);           // 予定を選択状態に
+    setPomodoroEventTitle(arg.event.title);     // 🍅 ボタン活性用
+    setPanelOpen(false);                        // ← 他のパネルは閉じておく
+    // ついでに、その予定に紐づく Pomodoro 実績を取得（非同期）
     if (user) {
-      const tasks = await getPomodoroTasks(user.uid, event.id);
-      setSelectedPomodoros(tasks); // ✅ 実績をセット
+      const tasks = await getPomodoroTasks(user.uid, arg.event.id);
+      setSelectedPomodoros(tasks);
     }
-    setPomodoroEventTitle(event.title);
-    setSelectedEventId(arg.event.id);
-    setPanelOpen(false); 
   };
 
-   // 🎯 モーダルを閉じる処理
-  /*const closeModal = () => {
-    //setShowInput(false); // ✅ モーダルを非表示にする
-    setNewEventTitle("");
-    setNewEventStartTime("12:00");
-    setNewEventEndTime("13:00");
-    setEditingEvent(null);
-    setSelectedDate(null);
-  };*/
   const handleDeleteEvent = async (eventData: {
     title: string;
     date: string;
@@ -392,9 +377,7 @@ function AppMain() {
           center: 'title',
           right: 'dayGridMonth,timeGridWeek,timeGridDay',
         }}
-        height={typeof window !== 'undefined' && window.innerWidth < 640
-          ? `calc(100dvh - ${HEADER_HEIGHT}px)`
-          : 420}
+        height={`calc(100dvh - ${HEADER_HEIGHT}px)`}
         titleFormat={{ year: 'numeric', month: 'long' }}
         initialView={'timeGridWeek'}
         slotLabelFormat={{
@@ -419,7 +402,7 @@ function AppMain() {
         scrollTime="08:00:00"
         scrollTimeReset={false}
         events={events}
-        //dateClick={handleDateClick}
+        dateClick={handleDateClick}
         eventClick={handleEventClick}
         eventDrop={handleEventChange}
         eventResize={handleEventChange}
@@ -469,6 +452,7 @@ function AppMain() {
       <button
         className="bg-blue-500 text-white px-4 py-3 rounded-full shadow-lg w-1/3 mr-2"
         onClick={() => {
+          setSelectedEventId(null);
           setEditingEvent(null);
           setEditingEventData(null);
           //setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
@@ -502,6 +486,7 @@ function AppMain() {
     <div className="hidden sm:block fixed bottom-4 left-4 z-50">
     <button
       onClick={() => {
+      setSelectedEventId(null);
       setEditingEvent(null);
       setEditingEventData(null);
       //setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
