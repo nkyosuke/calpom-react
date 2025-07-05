@@ -16,12 +16,13 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid'; 
 import interactionPlugin from "@fullcalendar/interaction"; 
-import { DateClickArg } from "@fullcalendar/interaction"; 
+//import { DateClickArg } from "@fullcalendar/interaction"; 
 import { EventClickArg } from "@fullcalendar/core";
 import jaLocale from '@fullcalendar/core/locales/ja'; 
 import type { PomodoroTask } from './pomodoro/getPomodoroTasks';
 import StatsFab   from './components/StatsFab';
 import StatsPanel from './components/StatsPanel';
+import EventPanel from './components/EventPanel';
 import { parseISO } from "date-fns";
 
 type CalendarEvent = {
@@ -34,12 +35,12 @@ type CalendarEvent = {
 
 function AppMain() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [newEventTitle, setNewEventTitle] = useState("");
-  const [newEventStartTime, setNewEventStartTime] = useState("12:00"); //  開始時間
-  const [newEventEndTime, setNewEventEndTime] = useState("13:00"); //  終了時間
+  //const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  //const [newEventTitle, setNewEventTitle] = useState("");
+  //const [newEventStartTime, setNewEventStartTime] = useState("12:00"); //  開始時間
+  //const [newEventEndTime, setNewEventEndTime] = useState("13:00"); //  終了時間
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
-  const [showInput, setShowInput] = useState(false);
+  //const [showInput, setShowInput] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   //const [pomodoroDates, setPomodoroDates] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
@@ -48,6 +49,13 @@ function AppMain() {
   const [pomodoroEventTitle, setPomodoroEventTitle] = useState<string | null>(null);
   const [selectedPomodoros, setSelectedPomodoros] = useState<PomodoroTask[]>([]);
   const [statsOpen, setStatsOpen] = useState(false);
+  const [eventPanelOpen, setEventPanelOpen] = useState(false);
+  const [editingEventData, setEditingEventData] = useState<{
+    title: string;
+    date: string;
+    start: string;
+    end: string;
+  } | null>(null);
   const HEADER_HEIGHT = 56;
   
 
@@ -113,11 +121,11 @@ function AppMain() {
 
   
 
-  const handleDateClick = (arg: DateClickArg) => { 
+  /*const handleDateClick = (arg: DateClickArg) => { 
     arg.jsEvent.preventDefault(); 
     arg.jsEvent.stopPropagation();
     // クリックした日付を保存
-    setSelectedDate(arg.dateStr);
+    //setSelectedDate(arg.dateStr);
     setEditingEvent(null); // 編集モードを解除
 
     // 入力欄を初期化
@@ -140,7 +148,7 @@ function AppMain() {
       clickedDateElement.classList.add('selected-date');
     }
     setEditingEvent(null); // 編集モード解除
-  };
+  };*/
   // useRef はここで定義
   const calendarRef = useRef<FullCalendar | null>(null);
   // Firebase 登録（ステップ2で実装）
@@ -156,7 +164,7 @@ function AppMain() {
   };
 
   // 予定追加処理
-  const addEvent = async () => {
+  /*const _addEvent = async () => {
     if (selectedDate && newEventTitle.trim() !== "" && user) {
       const newEvent: CalendarEvent = {
         id: String(Date.now()),
@@ -173,9 +181,9 @@ function AppMain() {
         console.error(error);
       }
     }
-  };
+  };*/
 
-  const updateEvent = () => {  
+  /*const _updateEvent = () => {  
     if (!user) return; // ユーザーがいない場合は処理しない
     if (editingEvent && newEventTitle.trim() !== "") {
       const updatedEvent: CalendarEvent = {
@@ -188,9 +196,9 @@ function AppMain() {
       saveCalendarEvent({ ...updatedEvent, uid: user.uid }); // ← Firebase 更新
       closeModal();
     }
-  };
+  };*/
 
-  const deleteEvent = async () => {
+  /*const _deleteEvent = async () => {
     if (editingEvent) {
       // Firestore から削除
       try{
@@ -205,7 +213,7 @@ function AppMain() {
         console.error('❌ イベント削除処理中にエラー:', err);
       }     
     }
-  };
+  };*/
 
   const handleEventClick = async (arg: EventClickArg) => {
     arg.jsEvent.preventDefault(); 
@@ -215,23 +223,19 @@ function AppMain() {
 
     if (event) {
       setEditingEvent(event);
-      setNewEventTitle(event.title);
-      setSelectedDate(
-        typeof event.start === "string"
-          ? event.start.split("T")[0]
-          : format(parseISO(event.start.toString()), "yyyy-MM-dd")
-      );
-      setNewEventStartTime(
-        typeof event.start === "string"
-          ? event.start.split("T")[1].slice(0, 5)
-          : format(parseISO(event.start.toString()), "HH:mm")
-      );// ✅ 開始時間をセット
-      setNewEventEndTime(
-        typeof event.end === "string"
-          ? event.end.split("T")[1].slice(0, 5)
-          : format(parseISO(event.end.toString()), "HH:mm")
-      );// ✅ 終了時間をセット
-      setShowInput(true);  
+      setEditingEventData({
+      title: event.title,
+      date: typeof event.start === 'string'
+        ? event.start.split('T')[0]
+        : format(parseISO(event.start.toString()), 'yyyy-MM-dd'),
+      start: typeof event.start === 'string'
+        ? event.start.split('T')[1].slice(0, 5)
+        : format(parseISO(event.start.toString()), 'HH:mm'),
+      end: typeof event.end === 'string'
+        ? event.end.split('T')[1].slice(0, 5)
+        : format(parseISO(event.end.toString()), 'HH:mm'),
+      });
+      setEventPanelOpen(true);
     }
     if (user) {
       const tasks = await getPomodoroTasks(user.uid, event.id);
@@ -243,13 +247,61 @@ function AppMain() {
   };
 
    // 🎯 モーダルを閉じる処理
-  const closeModal = () => {
-    setShowInput(false); // ✅ モーダルを非表示にする
+  /*const closeModal = () => {
+    //setShowInput(false); // ✅ モーダルを非表示にする
     setNewEventTitle("");
     setNewEventStartTime("12:00");
     setNewEventEndTime("13:00");
     setEditingEvent(null);
     setSelectedDate(null);
+  };*/
+  const handleDeleteEvent = async (eventData: {
+    title: string;
+    date: string;
+    start: string;
+    end: string;
+  }) => {
+    if (!user || !editingEvent) return;
+    try {
+      await deleteCalendarEvent(user.uid, editingEvent.id);
+      setEvents(prev => prev.filter(e => e.id !== editingEvent.id));
+      setEventPanelOpen(false);
+    } catch (err) {
+      alert('削除に失敗しました');
+      console.error('削除エラー:', err);
+    }
+  };
+
+  /* 予定保存ハンドラ */
+  const handleSaveEvent = async (
+    title: string,
+    date: string,
+    start: string,
+    end: string,
+  ) => {
+    if (!user) return;
+    if (editingEvent) {
+      // 更新
+      const updated: CalendarEvent = {
+        ...editingEvent,
+        title,
+        start: `${date}T${start}`,
+        end:   `${date}T${end}`,
+      };
+      await saveCalendarEvent({ ...updated, uid: user.uid });
+      setEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
+    } else {
+      // 新規
+      const newEvent: CalendarEvent = {
+        id: String(Date.now()),
+        title,
+        start: `${date}T${start}`,
+        end: `${date}T${end}`,
+      };
+      await saveCalendarEvent({ ...newEvent, uid: user.uid });
+      setEvents((prev) => [...prev, newEvent]);
+    }
+    setEventPanelOpen(false);
   };
 
   // ① drag & drop／resize で呼ばれる共通ハンドラ
@@ -284,6 +336,24 @@ function AppMain() {
     await signOut(auth);
   };
 
+  const openEventPanelOnly = () => {
+    setEventPanelOpen(true);
+    setPanelOpen(false);
+    setStatsOpen(false);
+  };
+
+  const openPomodoroPanelOnly = () => {
+    setEventPanelOpen(false);
+    setPanelOpen(true);
+    setStatsOpen(false);
+  };
+
+  const openStatsPanelOnly = () => {
+    setEventPanelOpen(false);
+    setPanelOpen(false);
+    setStatsOpen(true);
+  };
+
 
   useEffect(() => {
     // 画面サイズが変更されたときにカレンダーをリサイズ
@@ -312,7 +382,7 @@ function AppMain() {
       </button>
     </header>
 
-    {/* カレンダービュー */}
+    {/* カレンダー */}
     <main className="flex-1 overflow-hidden">
       <FullCalendar
         ref={calendarRef}
@@ -333,15 +403,23 @@ function AppMain() {
           meridiem: false,
           hour12: false,
         }}
-        dayHeaderFormat={typeof window !== 'undefined' && window.innerWidth < 640
-          ? { weekday: 'short' }
-          : { weekday: 'short', day: 'numeric' }}
+        views={{
+          dayGridMonth: {
+            dayHeaderFormat: { weekday: 'short' }, // 月表示：曜日だけ（例: 月, 火）
+          },
+          timeGridWeek: {
+            dayHeaderFormat: { weekday: 'short', day: 'numeric' }, // 週表示：曜日+日付（例: 火 2）
+          },
+          timeGridDay: {
+            dayHeaderFormat: { weekday: 'short', day: 'numeric' }, // 日表示：同上
+          },
+        }}
         locales={[jaLocale]}
         locale="ja"
         scrollTime="08:00:00"
         scrollTimeReset={false}
         events={events}
-        dateClick={handleDateClick}
+        //dateClick={handleDateClick}
         eventClick={handleEventClick}
         eventDrop={handleEventChange}
         eventResize={handleEventChange}
@@ -386,111 +464,70 @@ function AppMain() {
       />
     </main>
 
-    {/* 予定追加 FAB（モバイルのみ） */}
+    {/* モバイル用FAB（3ボタン） */}
+    <div className="fixed bottom-4 left-0 right-0 z-50 px-4 flex justify-between sm:hidden">
+      <button
+        className="bg-blue-500 text-white px-4 py-3 rounded-full shadow-lg w-1/3 mr-2"
+        onClick={() => {
+          setEditingEvent(null);
+          setEditingEventData(null);
+          //setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
+          openEventPanelOnly();
+        }}
+      >
+        ＋予定
+      </button>
+
+      <button
+        onClick={() => selectedEventId && openPomodoroPanelOnly()}
+        className={`w-1/3 mx-1 px-4 py-3 rounded-full shadow-lg ${
+          selectedEventId
+            ? 'bg-red-500 text-white'
+            : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+        }`}
+        disabled={!selectedEventId}
+      >
+        🍅
+      </button>
+
+      <button
+        onClick={() => openStatsPanelOnly()}
+        className="bg-green-600 text-white px-4 py-3 rounded-full shadow-lg w-1/3 ml-2"
+      >
+        📊
+      </button>
+    </div>
+
+    {/* PC用FAB群 */}
+    <div className="hidden sm:block fixed bottom-4 left-4 z-50">
     <button
       onClick={() => {
-        setShowInput(true);
-        setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
-        setEditingEvent(null);
+      setEditingEvent(null);
+      setEditingEventData(null);
+      //setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
+      openEventPanelOnly(); // ← 他パネル閉じてEventPanelだけ開く関数
       }}
-      className="fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-3 rounded-full shadow-lg sm:hidden"
+      className="bg-blue-500 text-white px-4 py-3 rounded-full shadow-lg"
     >
-      ＋
+      ＋予定
     </button>
-
-    {/* 予定追加 / 編集モーダル */}
-    {showInput && (
-      <div className="mt-4 p-4 border rounded shadow relative z-30 bg-white dark:bg-gray-800">
-        <h2 className="text-lg font-semibold">
-          {editingEvent ? '予定を編集' : '予定を追加'} ({selectedDate ? format(new Date(selectedDate), 'yyyy-MM-dd') : ''})
-        </h2>
-        <input
-          type="text"
-          placeholder="予定を入力"
-          value={newEventTitle}
-          onChange={(e) => setNewEventTitle(e.target.value)}
-          className="border p-2 w-full mt-2"
-        />
-        <label>日付:</label>
-        <input
-          type="date"
-          value={selectedDate || ''}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="border p-2 w-full mt-2"
-        />
-        <label>開始時間:</label>
-        <input
-          type="time"
-          value={newEventStartTime}
-          onChange={(e) => setNewEventStartTime(e.target.value)}
-          className="border p-2 w-full mt-2"
-        />
-        <label>終了時間:</label>
-        <input
-          type="time"
-          value={newEventEndTime}
-          onChange={(e) => setNewEventEndTime(e.target.value)}
-          className="border p-2 w-full mt-2"
-        />
-        {editingEvent ? (
-          <div>
-            <button
-              onClick={updateEvent}
-              className="mt-2 bg-green-500 text-white px-4 py-2 rounded mr-2"
-            >更新</button>
-            <button
-              onClick={deleteEvent}
-              className="mt-2 bg-red-500 text-white px-4 py-2 rounded"
-            >削除</button>
-          </div>
-        ) : (
-          <button
-            onClick={addEvent}
-            className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
-          >追加</button>
-        )}
-      </div>
-    )}
-
-    {/* FAB: Pomodoro & Stats (固定表示) */}
-    {/* ✅ モバイル用フッターボタン：3つ横並び */}
-  <div className="fixed bottom-4 left-0 right-0 z-50 px-4 flex justify-between sm:hidden">
-    <button
-      onClick={() => {
-        setShowInput(true);
-        setSelectedDate(format(new Date(), "yyyy-MM-dd"));
-        setEditingEvent(null);
-      }}
-      className="bg-blue-500 text-white px-4 py-3 rounded-full shadow-lg w-1/3 mr-2"
-    >
-    ＋予定
-    </button>
-
-    <button
-      onClick={() => setPanelOpen(true)}
-      className="bg-red-500 text-white px-4 py-3 rounded-full shadow-lg w-1/3 mx-1"
-      disabled={!selectedEventId}
-    >
-      🍅
-    </button>
-
-    <button
-    onClick={() => setStatsOpen(true)}
-    className="bg-green-600 text-white px-4 py-3 rounded-full shadow-lg w-1/3 ml-2"
-    >
-    📊
-    </button>
-  </div>
-
-    {/* --- PC / タブレット用 FAB（従来の位置）--- */}
+    </div>
     <div className="hidden sm:block fixed bottom-20 right-4 z-50">
-      <PomodoroFab onClick={() => setPanelOpen(true)} disabled={!selectedEventId} />
+      <PomodoroFab onClick={() => openPomodoroPanelOnly()} disabled={!selectedEventId} />
     </div>
     <div className="hidden sm:block fixed bottom-36 right-4 z-50">
-      <StatsFab onClick={() => setStatsOpen(true)} />
+      <StatsFab onClick={() => openStatsPanelOnly()} />
     </div>
 
-    {/* --- パネル群 --- */}
+    {/* パネル群 */}
+    <EventPanel
+      isOpen={eventPanelOpen}
+      onClose={() => setEventPanelOpen(false)}
+      onSave={handleSaveEvent}
+      onDelete={handleDeleteEvent}
+      defaultDate={format(new Date(), 'yyyy-MM-dd')}
+      editing={editingEventData}
+    />
     <PomodoroPanel
       isOpen={panelOpen}
       onClose={() => setPanelOpen(false)}
@@ -505,7 +542,7 @@ function AppMain() {
       tasks={pomodoroTasks}
     />
   </div>
-  );
+);
 }
 
 export default AppMain;
