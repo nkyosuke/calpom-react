@@ -55,7 +55,7 @@ function AppMain() {
     end: string;
   } | null>(null);
   const [goalPanelOpen, setGoalPanelOpen] = useState(false);
-  const [hasPlan, setHasPlan] = useState(false);
+  const [hasExistingPlan, setHasExistingPlan] = useState(false);
   const HEADER_HEIGHT = 56;
 
   useEffect(() => {
@@ -271,18 +271,28 @@ function AppMain() {
     setEventPanelOpen(true);
     setPanelOpen(false);
     setStatsOpen(false);
+    setGoalPanelOpen(false);
   };
 
   const openPomodoroPanelOnly = () => {
     setEventPanelOpen(false);
     setPanelOpen(true);
     setStatsOpen(false);
+    setGoalPanelOpen(false);
   };
 
   const openStatsPanelOnly = () => {
     setEventPanelOpen(false);
     setPanelOpen(false);
     setStatsOpen(true);
+    setGoalPanelOpen(false);
+  };
+
+  const openGoalPanelOnly = () => {
+    setGoalPanelOpen(true);
+    setEventPanelOpen(false);
+    setPanelOpen(false);
+    setStatsOpen(false);
   };
 
   useEffect(() => {
@@ -401,6 +411,13 @@ function AppMain() {
 
       {/* モバイル用FAB（3ボタン） */}
       <div className="fixed bottom-4 left-0 right-0 z-50 px-4 flex justify-between sm:hidden">
+        {/* 🎯 目標 */}
+        <button
+          onClick={openGoalPanelOnly}
+          className="bg-purple-600 text-white px-4 py-3 rounded-full shadow-lg w-1/4 mr-2"
+        >
+          🎯
+        </button>
         <button
           className="bg-blue-500 text-white px-4 py-3 rounded-full shadow-lg w-1/3 mr-2"
           onClick={() => {
@@ -435,6 +452,13 @@ function AppMain() {
 
       {/* PC用FAB群 */}
       <div className="hidden sm:block fixed bottom-4 left-4 z-50">
+        {/* 🎯 Goal */}
+        <button
+          onClick={openGoalPanelOnly}
+          className="bg-purple-600 text-white px-4 py-3 rounded-full shadow-lg"
+        >
+          🎯
+        </button>
         <button
           onClick={() => {
             setSelectedEventId(null);
@@ -478,6 +502,17 @@ function AppMain() {
         isOpen={statsOpen}
         onClose={() => setStatsOpen(false)}
         tasks={pomodoroTasks}
+      />
+      <GoalPlanPanel
+        isOpen={goalPanelOpen}
+        onClose={() => setGoalPanelOpen(false)}
+        hasExistingPlan={hasExistingPlan}
+        onGenerate={(input) => {
+          /* ここで広告 → Gemini 呼び出し処理へ渡す */
+          console.log("✨ 受け取った入力", input);
+          setGoalPanelOpen(false);
+          setHasExistingPlan(true); // 次回は警告を出す例
+        }}
       />
     </div>
   );

@@ -25,7 +25,14 @@ yarn-error.log*
 
 # Firebase
 .firebase/
+.firebaserc
 
 # Firebase / pglite logs
 pglite-debug.log
 santized-repo
+
+# functions 除外ファイル追加
+functions/lib/
+functions/node_modules/
+functions/.env
+functions/.env.local
