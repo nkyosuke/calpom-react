@@ -1,5 +1,5 @@
 // src/auth/authService.ts
-import { auth } from '../firebase'; // ← ここが超重要！
+import { auth } from '../firebase';
 
 import {
   signInWithEmailAndPassword,

@@ -4,9 +4,9 @@ import { db } from "./firebase";
 export const getUserEvents = async (userId: string) => {
   const q = query(collection(db, "events"), where("userId", "==", userId));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({
+  return querySnapshot.docs.map((doc) => ({
     id: doc.id,
-    ...doc.data()
+    ...doc.data(),
   })) as {
     id: string;
     title: string;

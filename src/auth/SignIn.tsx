@@ -10,10 +10,8 @@ const SignIn: React.FC = () => {
   const handleEmailLogin = async () => {
     try {
       await loginWithEmail(email, password);
-      alert('✅ ログイン成功');
       navigate('/calendar');
     } catch (error) {
-      alert('❌ ログイン失敗');
       console.error(error);
     }
   };
@@ -21,10 +19,8 @@ const SignIn: React.FC = () => {
   const handleAnonymousLogin = async () => {
     try {
       await loginAnonymously();
-      alert('✅ 匿名ログイン成功');
       navigate('/calendar');
     } catch (error) {
-      alert('❌ 匿名ログイン失敗');
       console.error(error);
     }
   };
