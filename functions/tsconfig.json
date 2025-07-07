@@ -1,17 +1,17 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "esModuleInterop": true,
-    "moduleResolution": "nodenext",
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
+    /* 出力フォルダ */
     "outDir": "lib",
+    /* 対象 ECMAScript バージョン  ← ここを追加 or 修正 */
+    "target": "es2020",
+    /* Node なので CommonJS */
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "rootDir": "src",
+    "lib": ["es2020"],
     "sourceMap": true,
-    "strict": true,
-    "target": "es2017"
+    "esModuleInterop": true, // node‑fetch を default import する場合必須
+    "strict": false
   },
-  "compileOnSave": true,
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }
