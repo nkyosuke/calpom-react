@@ -1,6 +1,6 @@
 import "./App.css";
 import { format } from "date-fns";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { saveCalendarEvent } from "./saveCalendarEvent";
 import { deleteCalendarEvent } from "./deleteCalendarEvent";
 import { updateCalendarEvent } from "./updateCalendarEvent";
@@ -24,6 +24,13 @@ import StatsPanel from "./components/StatsPanel";
 import EventPanel from "./components/EventPanel";
 import GoalPlanPanel from "./components/GoalPlanPanel";
 import { parseISO } from "date-fns";
+import { v4 as uuid } from "uuid";
+import { toast } from "react-hot-toast";
+import {
+  generatePlanWithGemini,
+  type GenerateInput,
+  type GeminiPlan,
+} from "./lib/generatePlanWithGemini";
 
 type CalendarEvent = {
   id: string;
@@ -56,6 +63,8 @@ function AppMain() {
   } | null>(null);
   const [goalPanelOpen, setGoalPanelOpen] = useState(false);
   const [hasExistingPlan, setHasExistingPlan] = useState(false);
+  const [isGenerating, setGenerating] = useState(false); // ローディング
+  const [currentPlan, setCurrentPlan] = useState<GeminiPlan | null>(null);
   const HEADER_HEIGHT = 56;
 
   useEffect(() => {
@@ -294,6 +303,48 @@ function AppMain() {
     setPanelOpen(false);
     setStatsOpen(false);
   };
+  const handleGenerate = useCallback(
+    async (input: GenerateInput) => {
+      if (!user) return;
+      setGenerating(true);
+      try {
+        // 1) Functions → Gemini 呼び出し
+        const plan = await generatePlanWithGemini(input);
+        setCurrentPlan(plan);
+
+        // 2) 返ってきたスケジュールを FullCalendar 形式へ
+        const newEvents: CalendarEvent[] = plan.schedule.flatMap((day) =>
+          day.tasks.map((t) => ({
+            id: uuid(),
+            title: t.title,
+            start: `${day.date}T00:00:00`,
+            end: `${day.date}T00:00:00`,
+            allDay: true,
+          }))
+        );
+
+        // 3) 既存イベントと祝日イベントを保持しつつマージ
+        setEvents((prev) => {
+          const keep = prev.filter((e) => e.id.startsWith("holiday-"));
+          return [...keep, ...newEvents];
+        });
+
+        // 4) Firestore へ保存（既存 util 利用）
+        for (const ev of newEvents) {
+          await saveCalendarEvent({ ...ev, uid: user.uid });
+        }
+
+        toast.success("学習計画を生成・保存しました 🎉");
+        setHasExistingPlan(true);
+        setGoalPanelOpen(false);
+      } catch (e: any) {
+        toast.error(e.message ?? "計画生成に失敗しました");
+      } finally {
+        setGenerating(false);
+      }
+    },
+    [user]
+  );
 
   useEffect(() => {
     // 画面サイズが変更されたときにカレンダーをリサイズ
@@ -507,12 +558,8 @@ function AppMain() {
         isOpen={goalPanelOpen}
         onClose={() => setGoalPanelOpen(false)}
         hasExistingPlan={hasExistingPlan}
-        onGenerate={(input) => {
-          /* ここで広告 → Gemini 呼び出し処理へ渡す */
-          console.log("✨ 受け取った入力", input);
-          setGoalPanelOpen(false);
-          setHasExistingPlan(true); // 次回は警告を出す例
-        }}
+        isGenerating={isGenerating} // ★ ローディング
+        onGenerate={handleGenerate}
       />
     </div>
   );

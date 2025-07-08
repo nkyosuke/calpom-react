@@ -57,7 +57,7 @@ const GoalPlanPanel: React.FC<Props> = ({
       setError(err);
       return;
     }
-
+    console.log("[Generate] input", input);
     setError("");
     onGenerate({
       goal,
@@ -158,14 +158,14 @@ const GoalPlanPanel: React.FC<Props> = ({
         {/* ボタン群 */}
         <button
           onClick={handleGenerateClick}
-          disabled={!goal.trim() || !deadline}
+          disabled={isGenerating || !goal.trim() || !deadline}
           className={`w-full py-2 rounded ${
             goal.trim() && deadline
               ? "bg-blue-600 hover:bg-blue-700 text-white"
               : "bg-gray-400 text-gray-200 cursor-not-allowed"
           }`}
         >
-          広告を見て計画を生成する
+          {isGenerating ? "生成中…" : "広告を見て学習計画を生成する"}
         </button>
 
         <button
