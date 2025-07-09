@@ -31,6 +31,7 @@ import {
   type GenerateInput,
   type GeminiPlan,
 } from "./lib/generatePlanWithGemini";
+import { AdBanner } from "./components/AdBanner";
 
 type CalendarEvent = {
   id: string;
@@ -536,6 +537,8 @@ function AppMain() {
       <div className="hidden sm:block fixed bottom-36 right-4 z-50">
         <StatsFab onClick={() => openStatsPanelOnly()} />
       </div>
+
+      <AdBanner />
 
       {/* パネル群 */}
       <EventPanel
