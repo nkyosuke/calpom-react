@@ -314,13 +314,18 @@ function AppMain() {
 
         // 2) 返ってきたスケジュールを FullCalendar 形式へ
         const newEvents: CalendarEvent[] = plan.schedule.flatMap((day) =>
-          day.tasks.map((t) => ({
-            id: uuid(),
-            title: t.title,
-            start: `${day.date}T00:00:00`,
-            end: `${day.date}T00:00:00`,
-            allDay: true,
-          }))
+          day.tasks.map((t, index) => {
+            const start = new Date(`${day.date}T08:00:00`);
+            start.setMinutes(start.getMinutes() + index * 30); // 30分刻みで並べる
+            const end = new Date(start.getTime() + 30 * 60 * 1000);
+
+            return {
+              id: uuid(),
+              title: t.title,
+              start: start.toISOString(),
+              end: end.toISOString(),
+            };
+          })
         );
 
         // 3) 既存イベントと祝日イベントを保持しつつマージ
@@ -334,7 +339,7 @@ function AppMain() {
           await saveCalendarEvent({ ...ev, uid: user.uid });
         }
 
-        toast.success("学習計画を生成・保存しました 🎉");
+        toast.success("学習計画を生成・保存しました");
         setHasExistingPlan(true);
         setGoalPanelOpen(false);
       } catch (e: any) {
