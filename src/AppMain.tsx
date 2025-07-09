@@ -469,12 +469,12 @@ function AppMain() {
       {/* モバイル用FAB（3ボタン） */}
       <div className="fixed bottom-4 left-0 right-0 z-50 px-4 flex justify-between sm:hidden">
         {/* 🎯 目標 */}
-        <button
+        {/*<button
           onClick={openGoalPanelOnly}
           className="bg-purple-600 text-white px-4 py-3 rounded-full shadow-lg w-1/4 mr-2"
         >
           🎯
-        </button>
+        </button>*/}
         <button
           className="bg-blue-500 text-white px-4 py-3 rounded-full shadow-lg w-1/3 mr-2"
           onClick={() => {
@@ -510,18 +510,18 @@ function AppMain() {
       {/* PC用FAB群 */}
       <div className="hidden sm:block fixed bottom-4 left-4 z-50">
         {/* 🎯 Goal */}
-        <button
+        {/*<button
           onClick={openGoalPanelOnly}
           className="bg-purple-600 text-white px-4 py-3 rounded-full shadow-lg"
         >
           🎯
-        </button>
+        </button>*/}
         <button
           onClick={() => {
             setSelectedEventId(null);
             setEditingEvent(null);
             setEditingEventData(null);
-            openEventPanelOnly(); // ← 他パネル閉じてEventPanelだけ開く関数
+            openEventPanelOnly();
           }}
           className="bg-blue-500 text-white px-4 py-3 rounded-full shadow-lg"
         >
