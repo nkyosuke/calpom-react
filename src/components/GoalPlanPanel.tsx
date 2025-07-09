@@ -14,6 +14,7 @@ type Props = {
   onClose: () => void;
   onGenerate: (input: GenerateInput) => void;
   hasExistingPlan: boolean;
+  isGenerating: boolean;
 };
 
 const GoalPlanPanel: React.FC<Props> = ({
@@ -21,6 +22,7 @@ const GoalPlanPanel: React.FC<Props> = ({
   onClose,
   onGenerate,
   hasExistingPlan,
+  isGenerating,
 }) => {
   /* ---------- form state ---------- */
   const [goal, setGoal] = useState("");
