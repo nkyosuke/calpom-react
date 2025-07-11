@@ -1,10 +1,10 @@
 import "./App.css";
 import { format } from "date-fns";
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { saveCalendarEvent } from "./saveCalendarEvent";
-import { deleteCalendarEvent } from "./deleteCalendarEvent";
-import { updateCalendarEvent } from "./updateCalendarEvent";
-import { getCalendarEvents } from "./getCalendarEvents";
+import { saveCalendarEvent } from "./event/saveCalendarEvent";
+import { deleteCalendarEvent } from "./event/deleteCalendarEvent";
+import { updateCalendarEvent } from "./event/updateCalendarEvent";
+import { getCalendarEvents } from "./event/getCalendarEvents";
 import { getAuth, onAuthStateChanged, User, signOut } from "firebase/auth";
 import { auth } from "./firebase";
 import SignIn from "./auth/SignIn";

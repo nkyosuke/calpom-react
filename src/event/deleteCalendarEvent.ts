@@ -1,4 +1,4 @@
-import { db } from './firebase';
+import { db } from '../firebase';
 import { collection,doc, deleteDoc,getDocs } from 'firebase/firestore';
 
 // Firestore からイベントを削除する関数

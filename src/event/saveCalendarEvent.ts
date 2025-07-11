@@ -1,5 +1,5 @@
 import { doc, setDoc } from "firebase/firestore";
-import { db } from "./firebase";
+import { db } from "../firebase";
 import { getAuth } from "firebase/auth";
 
 export type CalendarEvent = {
