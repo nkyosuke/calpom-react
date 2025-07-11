@@ -1,29 +1,30 @@
-import React, { useState } from 'react';
-import { loginAnonymously, loginWithEmail } from './authService';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { loginWithEmail } from "./authService";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const SignIn: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   const handleEmailLogin = async () => {
     try {
       await loginWithEmail(email, password);
-      navigate('/calendar');
+      navigate("/calendar");
     } catch (error) {
       console.error(error);
     }
   };
 
-  const handleAnonymousLogin = async () => {
+  /*const handleAnonymousLogin = async () => {
     try {
       await loginAnonymously();
-      navigate('/calendar');
+      navigate("/calendar");
     } catch (error) {
       console.error(error);
     }
-  };
+  };*/
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
@@ -56,20 +57,25 @@ const SignIn: React.FC = () => {
             ログイン
           </button>
           <div className="flex justify-between text-sm text-gray-500 mt-2">
-            <button onClick={() => navigate('/signup')} className="hover:underline">
+            <button
+              onClick={() => navigate("/signup")}
+              className="hover:underline"
+            >
               新規登録
             </button>
-            <button onClick={() => navigate('/reset')} className="hover:underline">
+            <button
+              onClick={() => navigate("/reset")}
+              className="hover:underline"
+            >
               パスワードをお忘れですか？
             </button>
           </div>
           <hr className="my-4" />
-          <button
-            onClick={handleAnonymousLogin}
-            className="w-full border border-gray-400 py-2 rounded-md hover:bg-gray-100 transition"
-          >
-            匿名で続ける
-          </button>
+          <p className="text-sm text-center mt-4">
+            <Link to="/" className="text-blue-600 hover:underline">
+              トップページに戻る
+            </Link>
+          </p>
         </div>
       </div>
     </div>
