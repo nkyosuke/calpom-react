@@ -7,6 +7,8 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { v4 as uuid } from "uuid";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { z } from "zod";
 
 /* ---------- 型定義 ---------- */
 export interface GenerateInput {
