@@ -1,5 +1,6 @@
 // src/pages/BlogArticle3.tsx
 import { Link } from "react-router-dom";
+import { AdBanner } from "../components/AdBanner";
 
 export default function BlogArticle3() {
   return (
@@ -70,6 +71,7 @@ export default function BlogArticle3() {
           CalPomで体験してみる
         </Link>
       </div>
+      <AdBanner />
     </div>
   );
 }

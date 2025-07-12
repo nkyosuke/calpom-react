@@ -1,5 +1,6 @@
 // src/pages/BlogArticle.tsx
 import { Link } from "react-router-dom";
+import { AdBanner } from "../components/AdBanner";
 
 export default function BlogArticle1() {
   return (
@@ -55,6 +56,7 @@ export default function BlogArticle1() {
           CalPomを今すぐ使ってみる
         </Link>
       </div>
+      <AdBanner />
     </div>
   );
 }
