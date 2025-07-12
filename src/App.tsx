@@ -12,9 +12,11 @@ import BlogArticle1 from "./pages/BlogArticle1";
 import BlogArticle2 from "./pages/BlogArticle2";
 import BlogArticle3 from "./pages/BlogArticle3";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { usePageTracking } from "./hooks/useAnalytics";
 import { auth } from "./firebase";
 
 function App() {
+  usePageTracking();
   const [user, loading] = useAuthState(auth);
 
   if (loading) return <div>読み込み中...</div>;
