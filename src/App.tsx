@@ -8,6 +8,9 @@ import { Navigate } from "react-router-dom";
 import TopPage from "./pages/TopPage";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import BlogArticle1 from "./pages/BlogArticle1";
+import BlogArticle2 from "./pages/BlogArticle2";
+import BlogArticle3 from "./pages/BlogArticle3";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "./firebase";
 
@@ -22,6 +25,9 @@ function App() {
       <Route path="/" element={<TopPage />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
+      <Route path="/blog/1" element={<BlogArticle1 />} />
+      <Route path="/blog/2" element={<BlogArticle2 />} />
+      <Route path="/blog/3" element={<BlogArticle3 />} />
 
       {/* 認証関連 */}
       <Route path="/signin" element={<SignIn />} />

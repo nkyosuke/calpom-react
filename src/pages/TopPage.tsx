@@ -54,6 +54,56 @@ export default function TopPage() {
           </div>
         </div>
       </section>
+      {/* ブログ記事カードセクション */}
+      <section className="py-16 px-6 bg-white">
+        <h2 className="text-2xl font-bold text-center mb-10">活用ガイド</h2>
+        <div className="grid gap-6 md:grid-cols-3 max-w-6xl mx-auto">
+          <Link
+            to="/blog/1"
+            className="block bg-blue-50 hover:bg-blue-100 transition rounded-xl shadow-sm p-6"
+          >
+            <h3 className="text-lg font-semibold mb-2">
+              📘 CalPomの効果的な使い方
+            </h3>
+            <p className="text-sm text-gray-700 mb-4">
+              予定管理 × 集中記録 × 学習計画を連動させて最大活用しよう！
+            </p>
+            <span className="inline-block text-blue-600 hover:underline text-sm font-medium">
+              ▶ 記事を読む
+            </span>
+          </Link>
+          <Link
+            to="/blog/2"
+            className="block bg-blue-50 hover:bg-blue-100 transition rounded-xl shadow-sm p-6"
+          >
+            <h3 className="text-lg font-semibold mb-2">
+              📘 ポモドーロ法 × 学習計画で最大効果を出すコツ
+            </h3>
+            <p className="text-sm text-gray-700 mb-4">
+              なぜこの組み合わせが最強なのか？
+            </p>
+            <span className="inline-block text-blue-600 hover:underline text-sm font-medium">
+              ▶ 記事を読む
+            </span>
+          </Link>
+          <Link
+            to="/blog/3"
+            className="block bg-blue-50 hover:bg-blue-100 transition rounded-xl shadow-sm p-6"
+          >
+            <h3 className="text-lg font-semibold mb-2">
+              📘 ポモドーロ・テクニックとは？集中力と脳科学の関係
+            </h3>
+            <p className="text-sm text-gray-700 mb-4">
+              ポモドーロとは？
+              <br />
+              なぜ集中できるの？脳科学の裏付けと実践方法を解説します。
+            </p>
+            <span className="inline-block text-blue-600 hover:underline text-sm font-medium">
+              ▶ 記事を読む
+            </span>
+          </Link>
+        </div>
+      </section>
       <AdBanner />
 
       {/* フッター */}
