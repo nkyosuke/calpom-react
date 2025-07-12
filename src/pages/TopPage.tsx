@@ -27,10 +27,24 @@ export default function TopPage() {
         <h2 className="text-2xl font-bold text-center mb-10">主な機能</h2>
         <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto text-center">
           <div>
+            <div className="w-full aspect-[4/3] overflow-hidden rounded shadow mb-4">
+              <img
+                src="./feature-calendar.jpg"
+                alt="カレンダーで予定をドラッグする様子"
+                className="w-full h-full object-cover"
+              />
+            </div>
             <h3 className="text-lg font-semibold mb-2">カレンダー管理</h3>
             <p>予定の追加・編集・ドラッグ操作に対応</p>
           </div>
           <div>
+            <div className="w-full aspect-[4/3] overflow-hidden rounded mb-4">
+              <img
+                src="./feature-pomodoro.jpg"
+                alt="ポモドーロの実績登録パネル"
+                className="w-full h-full object-contain"
+              />
+            </div>
             <h3 className="text-lg font-semibold mb-2">ポモドーロ記録</h3>
             <p>選択した予定に集中記録を紐づけ可能</p>
           </div>
