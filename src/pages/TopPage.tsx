@@ -49,6 +49,13 @@ export default function TopPage() {
             <p>選択した予定に集中記録を紐づけ可能</p>
           </div>
           <div>
+            <div className="w-full aspect-[4/3] overflow-hidden rounded  mb-4">
+              <img
+                src="./img/feature-aischedule.jpg"
+                alt="aiで予定を作成する様子"
+                className="w-full h-full object-contain"
+              />
+            </div>
             <h3 className="text-lg font-semibold mb-2">学習計画の自動生成</h3>
             <p>AIが目標から逆算して学習計画を自動作成(開発中)</p>
           </div>

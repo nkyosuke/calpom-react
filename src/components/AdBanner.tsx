@@ -4,8 +4,7 @@ import { useEffect } from "react";
 export const AdBanner = () => {
   useEffect(() => {
     try {
-      // AdSenseのスクリプトを再実行
-      if (window.adsbygoogle) {
+      if (typeof window !== "undefined" && window.adsbygoogle) {
         window.adsbygoogle.push({});
       }
     } catch (e) {
