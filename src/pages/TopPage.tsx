@@ -29,7 +29,7 @@ export default function TopPage() {
           <div>
             <div className="w-full aspect-[4/3] overflow-hidden rounded shadow mb-4">
               <img
-                src="./feature-calendar.jpg"
+                src="./img/feature-calendar.jpg"
                 alt="カレンダーで予定をドラッグする様子"
                 className="w-full h-full object-cover"
               />
@@ -40,7 +40,7 @@ export default function TopPage() {
           <div>
             <div className="w-full aspect-[4/3] overflow-hidden rounded mb-4">
               <img
-                src="./feature-pomodoro.jpg"
+                src="./img/feature-pomodoro.jpg"
                 alt="ポモドーロの実績登録パネル"
                 className="w-full h-full object-contain"
               />
