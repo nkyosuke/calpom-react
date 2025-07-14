@@ -9,58 +9,46 @@ export default function BlogArticle3() {
         ポモドーロ・テクニックとは？集中力と脳科学の関係
       </h1>
       <div className="text-sm text-gray-500 mb-8">
-        公開日: 2025/07/11 ・ カテゴリ: 集中力 / 脳科学
+        公開日: 2025/07/12 ・ カテゴリ: 脳科学 / 生産性
       </div>
 
-      {/* カード：基本編 */}
-      <div className="bg-white shadow-md rounded-xl p-6 mb-8 border">
-        <h2 className="text-xl font-semibold mb-2 text-blue-600">
-          ポモドーロとは？
-        </h2>
-        <p className="text-gray-700">
-          25分間の作業 + 5分間の休憩
-          を1セットとする集中力維持法。1980年代にフランチェスコ・シリロ氏が考案しました。
-          キッチンタイマーの形がトマト（イタリア語で
-          pomodoro）だったことが由来です。
-        </p>
-      </div>
+      <p className="text-lg leading-relaxed mb-6">
+        「集中できない」「やる気が続かない」と感じたことはありませんか？
+        現代人の脳は日々多くの情報にさらされ、集中を持続させるのが難しくなっています。
+        そんな中で注目されているのが「ポモドーロ・テクニック」です。
+        これは25分の作業＋5分の休憩を1セットとし、短い集中と回復を繰り返すことで、生産性を高める時間管理術です。
+      </p>
 
-      {/* カード：脳科学編 */}
-      <div className="bg-white shadow-md rounded-xl p-6 mb-8 border">
-        <h2 className="text-xl font-semibold mb-2 text-blue-600">
-          なぜ集中できるの？脳科学の裏付け
-        </h2>
-        <p className="text-gray-700">
-          私たちの脳は長時間の集中を苦手としています。ドーパミンやノルアドレナリンなどの神経伝達物質が、
-          集中開始から20〜30分で減少し始めることがわかっています。
-          <br />
-          ポモドーロ法はその限界を前提に、短い集中と小休憩を繰り返すことでパフォーマンスを最大化する手法です。
-        </p>
-      </div>
+      <h2 className="text-2xl font-semibold mt-10 mb-4 border-l-4 border-blue-400 pl-3">
+        なぜ25分が効果的なのか？ 脳科学から見る理由
+      </h2>
+      <p className="mb-6">
+        人間の脳は長時間の集中を苦手とする一方、短時間であれば高い集中力を発揮できます。
+        ポモドーロ法は「集中→休憩」のリズムを取り入れることで、脳の前頭前野（集中を司る部位）の疲労を防ぎつつ、効率よくアウトプットできるよう設計されています。
+        この25分という時間は、心理学者の研究でも「フロー状態」に入りやすい長さとされており、実際に多くの研究でも効果が示されています。
+      </p>
 
-      {/* カード：実践編 */}
-      <div className="bg-white shadow-md rounded-xl p-6 mb-8 border">
-        <h2 className="text-xl font-semibold mb-2 text-blue-600">
-          効果を最大化する実践ポイント
-        </h2>
-        <ul className="list-disc list-inside text-gray-700 space-y-2">
-          <li>1ポモドーロは「単一タスク」に集中する</li>
-          <li>中断されない環境を整える（通知OFFなど）</li>
-          <li>ポモ終了時に「何ができたか」を振り返る</li>
-        </ul>
-      </div>
+      <h2 className="text-2xl font-semibold mt-10 mb-4 border-l-4 border-blue-400 pl-3">
+        ポモドーロの効果を高めるポイント
+      </h2>
+      <ul className="list-disc list-inside mb-6 text-gray-700 space-y-2">
+        <li>作業前に具体的な目標（例：問題集を2ページ進める）を設定する</li>
+        <li>スマホや通知をオフにして「気が散らない環境」を作る</li>
+        <li>休憩中も脳を休める（SNSやメール確認を避ける）</li>
+      </ul>
 
-      {/* カード：CalPomでの活用 */}
-      <div className="bg-white shadow-md rounded-xl p-6 mb-8 border">
-        <h2 className="text-xl font-semibold mb-2 text-blue-600">
-          CalPomでの実践例
-        </h2>
-        <p className="text-gray-700">
-          CalPomでは、予定に対してポモドーロ記録を直接ひもづけることができます。
-          <br />
-          学習計画 → 実行 → 可視化 の流れをワンストップで行えるのが強みです。
-        </p>
-      </div>
+      <blockquote className="border-l-4 border-blue-400 pl-4 italic bg-blue-50 p-4 rounded mb-6">
+        「ポモドーロは、意志の力ではなく“仕組み”で集中を作り出す方法」
+      </blockquote>
+
+      <h2 className="text-2xl font-semibold mt-10 mb-4 border-l-4 border-blue-400 pl-3">
+        CalPomでポモドーロを実践するには？
+      </h2>
+      <p className="mb-6">
+        CalPomでは、予定に紐づけてポモドーロ記録を行えます。
+        1日の集中時間を可視化できるため、学習のリズムが定着しやすくなります。
+        統計画面では、実績をカレンダーやグラフで確認できるため、モチベーションの維持にもつながります。
+      </p>
 
       {/* CTA */}
       <div className="mt-10 text-center">
@@ -68,7 +56,7 @@ export default function BlogArticle3() {
           to="/signin"
           className="inline-block bg-blue-600 text-white px-6 py-3 rounded-full shadow hover:bg-blue-700 transition"
         >
-          CalPomで体験してみる
+          CalPomで集中力を強化しよう
         </Link>
       </div>
       <AdBanner />
