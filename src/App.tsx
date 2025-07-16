@@ -14,6 +14,7 @@ import BlogArticle3 from "./pages/BlogArticle3";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { usePageTracking } from "./hooks/useAnalytics";
 import { auth } from "./firebase";
+import GeminiTest from "./pages/GeminiTest";
 
 function App() {
   usePageTracking();
@@ -30,12 +31,11 @@ function App() {
       <Route path="/blog/1" element={<BlogArticle1 />} />
       <Route path="/blog/2" element={<BlogArticle2 />} />
       <Route path="/blog/3" element={<BlogArticle3 />} />
-
+      <Route path="/gemini-test" element={<GeminiTest />} />
       {/* 認証関連 */}
       <Route path="/signin" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/reset" element={<ResetPassword />} />
-
       {/* アプリ本体（認証必須） */}
       <Route
         path="/calendar"

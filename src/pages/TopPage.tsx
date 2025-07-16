@@ -112,6 +112,15 @@ export default function TopPage() {
         </div>
       </section>
       <AdBanner />
+      {/* Geminiテストページへのリンク */}
+      <section className="py-8 px-6 text-center">
+        <h2 className="text-xl font-semibold mb-4">AI機能のデモを見る</h2>
+        <Link to="/gemini-test">
+          <button className="bg-purple-600 text-white px-6 py-3 rounded-full shadow hover:bg-purple-700 transition">
+            学習計画をAIで作成するテスト
+          </button>
+        </Link>
+      </section>
 
       {/* フッター */}
       <footer className="text-sm text-center py-6 bg-white border-t">
