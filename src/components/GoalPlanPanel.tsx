@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
+import { AdRewardPanel } from "./AdRewardPanel";
 
 type GenerateInput = {
   goal: string;
@@ -31,6 +32,8 @@ const GoalPlanPanel: React.FC<Props> = ({
   const [weekdayHours, setWeekdayHours] = useState(1);
   const [weekendHours, setWeekendHours] = useState(2);
   const [errorMessage, setError] = useState("");
+  const [showAdReward, setShowAdReward] = useState(false);
+  const [adWatched, setAdWatched] = useState(false);
 
   /* ---------- util ---------- */
   const today = new Date();
@@ -53,9 +56,9 @@ const GoalPlanPanel: React.FC<Props> = ({
     return "";
   };
 
-  const handleGenerateClick = () => {
-    const err = validate();
-    if (err) {
+  /*const handleGenerateClick = () => {
+  //  const err = validate();
+  //  if (err) {
       setError(err);
       return;
     }
@@ -68,6 +71,16 @@ const GoalPlanPanel: React.FC<Props> = ({
       weekdayHours,
       weekendHours,
     });
+  };*/
+
+  const handleGenerateClick = () => {
+    const err = validate();
+    if (err) {
+      setError(err);
+      return;
+    }
+    setError("");
+    setShowAdReward(true); // 広告パネルを表示
   };
 
   /* ---------- panel open → フォームリセット ---------- */
@@ -177,6 +190,25 @@ const GoalPlanPanel: React.FC<Props> = ({
           キャンセル
         </button>
       </div>
+      {showAdReward && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
+          <div className="bg-white p-4 rounded shadow-lg max-w-md w-full">
+            <AdRewardPanel
+              onRewardConfirmed={() => {
+                setShowAdReward(false);
+                setAdWatched(true);
+                onGenerate({
+                  goal,
+                  deadline,
+                  roughTasks: notes,
+                  weekdayHours,
+                  weekendHours,
+                });
+              }}
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 };
