@@ -510,12 +510,12 @@ function AppMain() {
       {/* PC用FAB群 */}
       <div className="hidden sm:block fixed bottom-4 left-4 z-50">
         {/* 🎯 Goal */}
-        {/*<button
+        <button
           onClick={openGoalPanelOnly}
           className="bg-purple-600 text-white px-4 py-3 rounded-full shadow-lg"
         >
           🎯
-        </button>*/}
+        </button>
         <button
           onClick={() => {
             setSelectedEventId(null);
