@@ -1,14 +1,7 @@
 import { httpsCallable } from "firebase/functions";
-import { functions, db, auth } from "../firebase"; // ← 既存の初期化コードを流用
-import {
-  collection,
-  doc,
-  writeBatch,
-  serverTimestamp,
-} from "firebase/firestore";
-import { v4 as uuid } from "uuid";
+import { functions } from "../firebase";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { z } from "zod";
+import { buildGeminiPromptJSON } from "../utils/buildGeminiPrompt";
 
 /* ---------- 型定義 ---------- */
 export interface GenerateInput {
@@ -26,7 +19,7 @@ export interface GeminiTask {
 }
 
 export interface GeminiDay {
-  date: string; // YYYY‑MM‑DD
+  date: string;
   tasks: GeminiTask[];
 }
 
@@ -41,19 +34,33 @@ export interface GeminiPlan {
   schedule: GeminiDay[];
 }
 
-/* ---------- 型ガード ---------- */
 function isGeminiPlan(obj: any): obj is GeminiPlan {
   return obj && Array.isArray(obj.milestones) && Array.isArray(obj.schedule);
 }
 
-/* ---------- Main ---------- */
+/* ---------- メイン処理 ---------- */
+/* ローカルと本番環境を切り替えて、API呼び出し処理を実行する*/
 export async function generatePlanWithGemini(
   input: GenerateInput
 ): Promise<GeminiPlan> {
+  const useFunctions = import.meta.env.REACT_APP_USE_GEMINI_FUNCTION === "true";
+
+  const plan = useFunctions
+    ? await fetchFromFunctions(input)
+    : await fetchFromClient(input);
+
+  if (!isGeminiPlan(plan)) {
+    throw new Error("Gemini レスポンスの形式が不正です");
+  }
+
+  return plan;
+}
+
+/* ---------- Firebase Functions 経由 ---------- */
+async function fetchFromFunctions(input: GenerateInput): Promise<GeminiPlan> {
   const callable = httpsCallable(functions, "generateStudyPlan");
   const { data } = await callable(input);
 
-  /* --- JSON or string に来るパターンを両対応 --- */
   let plan: GeminiPlan | null = null;
 
   if (typeof data === "string") {
@@ -70,34 +77,27 @@ export async function generatePlanWithGemini(
     throw new Error("AI レスポンスの形式が不正です");
   }
 
-  /* ---------- Firestore 保存 ---------- */
-  const user = auth.currentUser;
-  if (!user) throw new Error("未ログインです");
-
-  const batch = writeBatch(db);
-  const planId = uuid();
-
-  // 親ドキュメント (plan メタ)
-  const planRef = doc(collection(db, "users", user.uid, "studyPlans"), planId);
-  batch.set(planRef, {
-    ...input,
-    createdAt: serverTimestamp(),
-    milestones: plan.milestones,
-  });
-
-  // サブコレクションに日別タスク
-  for (const day of plan.schedule) {
-    for (const t of day.tasks) {
-      const taskRef = doc(
-        collection(planRef, "tasks") // users/{uid}/studyPlans/{planId}/tasks/{autoId}
-      );
-      batch.set(taskRef, {
-        date: day.date,
-        ...t,
-      });
-    }
-  }
-
-  await batch.commit();
   return plan;
+}
+
+/* ---------- クライアントから直接Gemini API呼び出し ---------- */
+async function fetchFromClient(input: GenerateInput): Promise<GeminiPlan> {
+  const apiKey = import.meta.env.REACT_APP_GEMINI_API_KEY;
+  if (!apiKey) throw new Error("Gemini APIキーが設定されていません");
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const prompt = buildGeminiPromptJSON(input);
+
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+  const text = response.text();
+
+  try {
+    const plan = JSON.parse(text);
+    if (!isGeminiPlan(plan)) throw new Error();
+    return plan;
+  } catch {
+    throw new Error("Gemini のレスポンスがパースできませんでした");
+  }
 }
