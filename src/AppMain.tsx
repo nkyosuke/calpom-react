@@ -66,6 +66,9 @@ function AppMain() {
   const [hasExistingPlan, setHasExistingPlan] = useState(false);
   const [isGenerating, setGenerating] = useState(false); // ローディング
   const [currentPlan, setCurrentPlan] = useState<GeminiPlan | null>(null);
+  const [goalPanelStage, setGoalPanelStage] = useState<
+    "form" | "ad" | "preview"
+  >("form");
   const HEADER_HEIGHT = 56;
 
   useEffect(() => {
@@ -304,53 +307,22 @@ function AppMain() {
     setPanelOpen(false);
     setStatsOpen(false);
   };
-  const handleGenerate = useCallback(
-    async (input: GenerateInput) => {
-      if (!user) return;
-      setGenerating(true);
-      try {
-        // 1) Functions → Gemini 呼び出し
-        const plan = await generatePlanWithGemini(input);
-        setCurrentPlan(plan);
 
-        // 2) 返ってきたスケジュールを FullCalendar 形式へ
-        const newEvents: CalendarEvent[] = plan.schedule.flatMap((day) =>
-          day.tasks.map((t, index) => {
-            const start = new Date(`${day.date}T08:00:00`);
-            start.setMinutes(start.getMinutes() + index * 30); // 30分刻みで並べる
-            const end = new Date(start.getTime() + 30 * 60 * 1000);
+  const handleStartAdReward = () => {
+    setGoalPanelStage("ad");
+  };
 
-            return {
-              id: uuid(),
-              title: t.title,
-              start: start.toISOString(),
-              end: end.toISOString(),
-            };
-          })
-        );
-
-        // 3) 既存イベントと祝日イベントを保持しつつマージ
-        setEvents((prev) => {
-          const keep = prev.filter((e) => e.id.startsWith("holiday-"));
-          return [...keep, ...newEvents];
-        });
-
-        // 4) Firestore へ保存（既存 util 利用）
-        for (const ev of newEvents) {
-          await saveCalendarEvent({ ...ev, uid: user.uid });
-        }
-
-        toast.success("学習計画を生成・保存しました");
-        setHasExistingPlan(true);
-        setGoalPanelOpen(false);
-      } catch (e: any) {
-        toast.error(e.message ?? "計画生成に失敗しました");
-      } finally {
-        setGenerating(false);
-      }
-    },
-    [user]
-  );
+  const handleGenerate = useCallback(async (input: GenerateInput) => {
+    setGenerating(true);
+    try {
+      const plan = await generatePlanWithGemini(input);
+      setCurrentPlan(plan); // 生成した計画は状態に保持してプレビューへ渡す
+    } catch (e: any) {
+      toast.error(e.message ?? "計画生成に失敗しました");
+    } finally {
+      setGenerating(false);
+    }
+  }, []);
 
   useEffect(() => {
     // 画面サイズが変更されたときにカレンダーをリサイズ
@@ -568,6 +540,7 @@ function AppMain() {
         hasExistingPlan={hasExistingPlan}
         isGenerating={isGenerating} // ★ ローディング
         onGenerate={handleGenerate}
+        onStartAdReward={handleStartAdReward}
       />
     </div>
   );

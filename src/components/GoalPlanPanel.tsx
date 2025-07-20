@@ -25,6 +25,7 @@ const GoalPlanPanel: React.FC<Props> = ({
   onGenerate,
   hasExistingPlan,
   isGenerating,
+  onStartAdReward,
 }) => {
   /* ---------- form state ---------- */
   const [goal, setGoal] = useState("");
@@ -38,6 +39,7 @@ const GoalPlanPanel: React.FC<Props> = ({
   const [stage, setStage] = useState<"form" | "ad" | "preview">("form");
   const [generatedPlan, setGeneratedPlan] = useState<any>(null); // Geminiの出力
   const [isLoading, setIsLoading] = useState(false);
+  const [showPlanPreview, setShowPlanPreview] = useState(false);
 
   /* ---------- util ---------- */
   const today = new Date();
@@ -211,7 +213,7 @@ const GoalPlanPanel: React.FC<Props> = ({
 
             {/* ボタン */}
             <button
-              onClick={handleGenerateClick}
+              onClick={onStartAdReward}
               disabled={!goal.trim() || !deadline}
               className={`w-full py-2 rounded ${
                 goal.trim() && deadline
