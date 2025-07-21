@@ -12,9 +12,11 @@ type GenerateInput = {
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onGenerate: (input: GenerateInput) => void;
   hasExistingPlan: boolean;
   isGenerating: boolean;
+  onGenerate: (input: GenerateInput) => void;
+  onStartAdReward: () => void;
+  onNext: (input: GenerateInput) => void;
 };
 
 const GoalPlanPanel: React.FC<Props> = ({

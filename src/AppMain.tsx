@@ -561,10 +561,20 @@ function AppMain() {
         />
       )}
       {showAdPanel && (
-        <AdRewardPanel
-          onRewardConfirmed={handleAdRewardConfirmed}
-          loading={false} // Gemini呼び出し中のローディング状態をあとで対応
-        />
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center"
+          onClick={() => setGoalPanelOpen(false)}
+        >
+          <div
+            className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-6 w-full max-w-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <AdRewardPanel
+              onRewardConfirmed={handleAdRewardConfirmed}
+              loading={false} // Gemini呼び出し中のローディング状態をあとで対応
+            />
+          </div>
+        </div>
       )}
       {showPreviewPanel && <GeminiPlanPreviewPanel input={goalInput} />}
     </div>
