@@ -23,6 +23,8 @@ import StatsFab from "./components/StatsFab";
 import StatsPanel from "./components/StatsPanel";
 import EventPanel from "./components/EventPanel";
 import GoalPlanPanel from "./components/GoalPlanPanel";
+import { AdRewardPanel } from "./components/AdRewardPanel";
+import { GeminiPlanPreviewPanel } from "./components/GeminiPlanPreviewPanel";
 import { parseISO } from "date-fns";
 import { v4 as uuid } from "uuid";
 import { toast } from "react-hot-toast";
@@ -63,12 +65,12 @@ function AppMain() {
     end: string;
   } | null>(null);
   const [goalPanelOpen, setGoalPanelOpen] = useState(false);
+  const [showAdPanel, setShowAdPanel] = useState(false);
+  const [showPreviewPanel, setShowPreviewPanel] = useState(false);
+  const [goalInput, setGoalInput] = useState<GenerateInput | null>(null);
   const [hasExistingPlan, setHasExistingPlan] = useState(false);
   const [isGenerating, setGenerating] = useState(false); // ローディング
   const [currentPlan, setCurrentPlan] = useState<GeminiPlan | null>(null);
-  const [goalPanelStage, setGoalPanelStage] = useState<
-    "form" | "ad" | "preview"
-  >("form");
   const HEADER_HEIGHT = 56;
 
   useEffect(() => {
@@ -309,7 +311,20 @@ function AppMain() {
   };
 
   const handleStartAdReward = () => {
-    setGoalPanelStage("ad");
+    setGoalPanelOpen(false);
+    setShowAdPanel(true);
+  };
+
+  const handleGoalComplete = (input: typeof goalInput) => {
+    console.log("handleGoalComplete called:", input);
+    setGoalInput(input);
+    setGoalPanelOpen(false);
+    setShowAdPanel(true);
+  };
+
+  const handleAdRewardConfirmed = () => {
+    setShowAdPanel(false);
+    setShowPreviewPanel(true);
   };
 
   const handleGenerate = useCallback(async (input: GenerateInput) => {
@@ -441,12 +456,12 @@ function AppMain() {
       {/* モバイル用FAB（3ボタン） */}
       <div className="fixed bottom-4 left-0 right-0 z-50 px-4 flex justify-between sm:hidden">
         {/* 🎯 目標 */}
-        {/*<button
+        <button
           onClick={openGoalPanelOnly}
           className="bg-purple-600 text-white px-4 py-3 rounded-full shadow-lg w-1/4 mr-2"
         >
           🎯
-        </button>*/}
+        </button>
         <button
           className="bg-blue-500 text-white px-4 py-3 rounded-full shadow-lg w-1/3 mr-2"
           onClick={() => {
@@ -534,14 +549,24 @@ function AppMain() {
         onClose={() => setStatsOpen(false)}
         tasks={pomodoroTasks}
       />
-      <GoalPlanPanel
-        isOpen={goalPanelOpen}
-        onClose={() => setGoalPanelOpen(false)}
-        hasExistingPlan={hasExistingPlan}
-        isGenerating={isGenerating} // ★ ローディング
-        onGenerate={handleGenerate}
-        onStartAdReward={handleStartAdReward}
-      />
+      {goalPanelOpen && (
+        <GoalPlanPanel
+          isOpen={goalPanelOpen}
+          onClose={() => setGoalPanelOpen(false)}
+          hasExistingPlan={hasExistingPlan}
+          isGenerating={isGenerating} // ★ ローディング
+          onGenerate={handleGenerate}
+          onStartAdReward={handleStartAdReward}
+          onNext={handleGoalComplete}
+        />
+      )}
+      {showAdPanel && (
+        <AdRewardPanel
+          onRewardConfirmed={handleAdRewardConfirmed}
+          loading={false} // Gemini呼び出し中のローディング状態をあとで対応
+        />
+      )}
+      {showPreviewPanel && <GeminiPlanPreviewPanel input={goalInput} />}
     </div>
   );
 }

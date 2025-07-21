@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { AdRewardPanel } from "./AdRewardPanel";
-import { GeminiPlanPreviewPanel } from "./GeminiPlanPreviewPanel";
 
 type GenerateInput = {
   goal: string;
@@ -22,10 +20,11 @@ type Props = {
 const GoalPlanPanel: React.FC<Props> = ({
   isOpen,
   onClose,
-  onGenerate,
   hasExistingPlan,
   isGenerating,
+  onGenerate,
   onStartAdReward,
+  onNext,
 }) => {
   /* ---------- form state ---------- */
   const [goal, setGoal] = useState("");
@@ -35,7 +34,6 @@ const GoalPlanPanel: React.FC<Props> = ({
   const [weekendHours, setWeekendHours] = useState(2);
   const [errorMessage, setError] = useState("");
   const [showAdReward, setShowAdReward] = useState(false);
-  const [adWatched, setAdWatched] = useState(false);
   const [stage, setStage] = useState<"form" | "ad" | "preview">("form");
   const [generatedPlan, setGeneratedPlan] = useState<any>(null); // Geminiの出力
   const [isLoading, setIsLoading] = useState(false);
@@ -61,33 +59,6 @@ const GoalPlanPanel: React.FC<Props> = ({
       return "土日の学習時間を1時間以上で設定してください。";
     return "";
   };
-
-  /*const handleGenerateClick = () => {
-  //  const err = validate();
-  //  if (err) {
-      setError(err);
-      return;
-    }
-    console.log("[Generate] input", input);
-    setError("");
-    onGenerate({
-      goal,
-      deadline,
-      roughTasks: notes,
-      weekdayHours,
-      weekendHours,
-    });
-  };*/
-
-  /*const handleGenerateClick = () => {
-    const err = validate();
-    if (err) {
-      setError(err);
-      return;
-    }
-    setError("");
-    setShowAdReward(true); // 広告パネルを表示
-  };*/
 
   const handleGenerateClick = () => {
     const err = validate();
@@ -213,7 +184,15 @@ const GoalPlanPanel: React.FC<Props> = ({
 
             {/* ボタン */}
             <button
-              onClick={onStartAdReward}
+              onClick={() =>
+                onNext({
+                  goal,
+                  deadline,
+                  roughTasks: notes,
+                  weekdayHours,
+                  weekendHours,
+                })
+              }
               disabled={!goal.trim() || !deadline}
               className={`w-full py-2 rounded ${
                 goal.trim() && deadline
@@ -231,38 +210,6 @@ const GoalPlanPanel: React.FC<Props> = ({
               キャンセル
             </button>
           </>
-        )}
-
-        {/* 広告視聴パネル */}
-        {showAdReward && (
-          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
-            <div className="bg-white p-4 rounded shadow-lg max-w-md w-full">
-              <AdRewardPanel
-                onRewardConfirmed={() => {
-                  setShowAdReward(false);
-                  setAdWatched(true);
-                  setShowPlanPreview(true); // ← 学習計画プレビューへ
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* 学習計画プレビュー */}
-        {showPlanPreview && (
-          <GeminiPlanPreviewPanel
-            input={{
-              goal,
-              deadline,
-              roughTasks: notes,
-              weekdayHours,
-              weekendHours,
-            }}
-            onBack={() => setShowPlanPreview(false)}
-            onComplete={() => {
-              onClose();
-            }}
-          />
         )}
       </div>
     </>

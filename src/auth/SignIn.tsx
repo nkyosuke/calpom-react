@@ -36,26 +36,36 @@ const SignIn: React.FC = () => {
           <h2 className="text-2xl font-semibold text-gray-800">サインイン</h2>
         </div>
         <div className="rounded-lg shadow-md bg-white p-6 space-y-4">
-          <input
-            type="email"
-            placeholder="メールアドレス"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-          />
-          <input
-            type="password"
-            placeholder="パスワード"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
-          />
-          <button
-            onClick={handleEmailLogin}
-            className="w-full bg-black text-white py-2 rounded-md hover:opacity-90 transition"
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleEmailLogin();
+            }}
+            className="space-y-4"
           >
-            ログイン
-          </button>
+            <input
+              type="email"
+              placeholder="メールアドレス"
+              value={email}
+              autoComplete="username"
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+            />
+            <input
+              type="password"
+              placeholder="パスワード"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+            />
+            <button
+              onClick={handleEmailLogin}
+              className="w-full bg-black text-white py-2 rounded-md hover:opacity-90 transition"
+            >
+              ログイン
+            </button>
+          </form>
           <div className="flex justify-between text-sm text-gray-500 mt-2">
             <button
               onClick={() => navigate("/signup")}
