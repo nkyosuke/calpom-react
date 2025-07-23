@@ -13,9 +13,6 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   hasExistingPlan: boolean;
-  isGenerating: boolean;
-  onGenerate: (input: GenerateInput) => void;
-  onStartAdReward: () => void;
   onNext: (input: GenerateInput) => void;
 };
 
@@ -23,9 +20,6 @@ const GoalPlanPanel: React.FC<Props> = ({
   isOpen,
   onClose,
   hasExistingPlan,
-  isGenerating,
-  onGenerate,
-  onStartAdReward,
   onNext,
 }) => {
   /* ---------- form state ---------- */
@@ -36,9 +30,6 @@ const GoalPlanPanel: React.FC<Props> = ({
   const [weekendHours, setWeekendHours] = useState(2);
   const [errorMessage, setError] = useState("");
   const [showAdReward, setShowAdReward] = useState(false);
-  const [stage, setStage] = useState<"form" | "ad" | "preview">("form");
-  const [generatedPlan, setGeneratedPlan] = useState<any>(null); // Geminiの出力
-  const [isLoading, setIsLoading] = useState(false);
   const [showPlanPreview, setShowPlanPreview] = useState(false);
 
   /* ---------- util ---------- */
@@ -60,37 +51,6 @@ const GoalPlanPanel: React.FC<Props> = ({
     if (weekendHours <= 0)
       return "土日の学習時間を1時間以上で設定してください。";
     return "";
-  };
-
-  const handleGenerateClick = () => {
-    const err = validate();
-    if (err) {
-      setError(err);
-      return;
-    }
-    setError("");
-    setStage("ad");
-  };
-
-  const handleRewardConfirmed = async () => {
-    setIsLoading(true);
-    try {
-      const plan = await generatePlanWithGemini({
-        goal,
-        deadline,
-        roughTasks: notes,
-        weekdayHours,
-        weekendHours,
-      });
-      setGeneratedPlan(plan);
-      setStage("preview");
-    } catch (e: any) {
-      console.error("Gemini生成失敗", e);
-      setError(e.message || "計画生成に失敗しました");
-      setStage("form"); // 戻す
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   /* ---------- panel open → フォームリセット ---------- */

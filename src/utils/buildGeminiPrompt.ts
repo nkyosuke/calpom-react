@@ -1,3 +1,5 @@
+import { format, subDays } from "date-fns";
+
 export function buildGeminiPromptJSON(input: GoalPlanInput) {
   const { goal, deadline, roughTasks, weekdayHours, weekendHours } = input;
   const today = format(new Date(), "yyyy-MM-dd");

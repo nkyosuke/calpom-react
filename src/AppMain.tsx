@@ -321,23 +321,60 @@ function AppMain() {
     setGoalPanelOpen(false);
     setShowAdPanel(true);
   };
-
-  const handleAdRewardConfirmed = () => {
-    setShowAdPanel(false);
-    setShowPreviewPanel(true);
-  };
-
-  const handleGenerate = useCallback(async (input: GenerateInput) => {
+  /*const handleGenerate = useCallback(async (input: GenerateInput) => {
     setGenerating(true);
     try {
+      console.log("handleGenerate start");
+      console.log("📥 input内容", input);
       const plan = await generatePlanWithGemini(input);
+      console.log("🔥 Geminiから返ってきたplan:", plan);
       setCurrentPlan(plan); // 生成した計画は状態に保持してプレビューへ渡す
     } catch (e: any) {
       toast.error(e.message ?? "計画生成に失敗しました");
     } finally {
       setGenerating(false);
     }
+  }, []);*/
+  const handleGenerate = useCallback(async (input: GenerateInput) => {
+    setGenerating(true);
+    try {
+      console.log("handleGenerate start");
+      const plan = await generatePlanWithGemini(input);
+      console.log("🔥 Geminiから返ってきたplan:", plan);
+      setCurrentPlan(plan);
+    } catch (e: unknown) {
+      console.error("🚨 Gemini生成エラー:", e);
+
+      if (e instanceof Error) {
+        toast.error(e.message ?? "計画生成に失敗しました");
+      } else {
+        toast.error("不明なエラーが発生しました");
+      }
+    } finally {
+      setGenerating(false);
+    }
   }, []);
+
+  const handleAdRewardConfirmed = () => {
+    setShowAdPanel(false);
+    setShowPreviewPanel(true);
+    handleGenerate(goalInput!); // 生成を開始
+  };
+
+  /*const handleAdRewardConfirmed = async () => {
+    setShowAdPanel(false);
+    setGenerating(true);
+    try {
+      const plan = await generatePlanWithGemini(goalInput!);
+      console.log("🔥 Geminiから返ってきたplan:", plan);
+      setCurrentPlan(plan);
+      setShowPreviewPanel(true);
+    } catch (e: any) {
+      toast.error(e.message ?? "計画生成に失敗しました");
+    } finally {
+      setGenerating(false);
+    }
+  };*/
 
   useEffect(() => {
     // 画面サイズが変更されたときにカレンダーをリサイズ
@@ -554,9 +591,6 @@ function AppMain() {
           isOpen={goalPanelOpen}
           onClose={() => setGoalPanelOpen(false)}
           hasExistingPlan={hasExistingPlan}
-          isGenerating={isGenerating} // ★ ローディング
-          onGenerate={handleGenerate}
-          onStartAdReward={handleStartAdReward}
           onNext={handleGoalComplete}
         />
       )}

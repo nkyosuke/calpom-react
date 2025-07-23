@@ -14,14 +14,25 @@ export const GeminiPlanPreviewPanel: React.FC<GeminiPlanPreviewPanelProps> = ({
   onSave,
   onBack,
 }) => {
+  console.log("📦 受け取ったplan:", plan); // ← ここ
+
+  if (!plan || !plan.schedule) {
+    return <div>プランが存在しません。</div>; // safety fallback
+  }
   return (
     <div className="p-4 border rounded shadow bg-white max-h-[70vh] overflow-y-auto">
       <h2 className="text-xl font-bold mb-2">学習計画プレビュー</h2>
 
       <div className="mb-4">
-        <p><strong>目標:</strong> {input.goal}</p>
-        <p><strong>締切:</strong> {input.deadline}</p>
-        <p><strong>参考タスク:</strong> {input.roughTasks}</p>
+        <p>
+          <strong>目標:</strong> {input.goal}
+        </p>
+        <p>
+          <strong>締切:</strong> {input.deadline}
+        </p>
+        <p>
+          <strong>参考タスク:</strong> {input.roughTasks}
+        </p>
       </div>
 
       <h3 className="font-semibold mb-1">マイルストーン</h3>
@@ -38,7 +49,9 @@ export const GeminiPlanPreviewPanel: React.FC<GeminiPlanPreviewPanelProps> = ({
             <strong>{day.date}</strong>
             <ul className="ml-4 list-disc list-inside">
               {day.tasks.map((task, j) => (
-                <li key={j}>{task.title}（{task.duration}分）</li>
+                <li key={j}>
+                  {task.title}（{task.duration}分）
+                </li>
               ))}
             </ul>
           </li>
