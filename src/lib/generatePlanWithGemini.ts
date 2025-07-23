@@ -93,10 +93,19 @@ async function fetchFromClient(input: GenerateInput): Promise<GeminiPlan> {
   const response = await result.response;
   const text = response.text();
 
+  const jsonStart = text.indexOf("{");
+  const jsonEnd = text.lastIndexOf("}");
+  if (jsonStart === -1 || jsonEnd === -1) {
+    throw new Error("Gemini の応答に JSON が含まれていません");
+  }
+  const wrappedText = text.slice(jsonStart, jsonEnd + 1).trim();
+
   try {
-    const plan = JSON.parse(text);
-    if (!isGeminiPlan(plan)) throw new Error();
-    return plan;
+    //const plan = JSON.parse(text);
+    const raw = JSON.parse(wrappedText);
+    const wrapped = { plan: raw };
+    if (!isGeminiPlan(wrapped.plan)) throw new Error();
+    return wrapped.plan;
   } catch {
     throw new Error("Gemini のレスポンスがパースできませんでした");
   }
