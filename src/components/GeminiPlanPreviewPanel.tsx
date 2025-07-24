@@ -36,9 +36,13 @@ export const GeminiPlanPreviewPanel: React.FC<GeminiPlanPreviewPanelProps> = ({
       </div>
 
       <h3 className="font-semibold mb-1">マイルストーン</h3>
-      <ul className="list-disc list-inside mb-4">
+      <ul className="space-y-2 mb-4">
         {plan.milestones.map((m, idx) => (
-          <li key={idx}>{m}</li>
+          <li key={idx} className="border rounded p-2">
+            <div className="text-sm text-gray-500">{m.date}</div>
+            <div className="font-semibold">{m.title}</div>
+            <div className="text-sm text-gray-600">評価基準: {m.criteria}</div>
+          </li>
         ))}
       </ul>
 

@@ -357,8 +357,8 @@ function AppMain() {
 
   const handleAdRewardConfirmed = () => {
     setShowAdPanel(false);
-    setShowPreviewPanel(true);
     handleGenerate(goalInput!); // 生成を開始
+    setShowPreviewPanel(true);
   };
 
   /*const handleAdRewardConfirmed = async () => {
@@ -610,7 +610,13 @@ function AppMain() {
           </div>
         </div>
       )}
-      {showPreviewPanel && <GeminiPlanPreviewPanel input={goalInput} />}
+      {showPreviewPanel && (
+        <GeminiPlanPreviewPanel
+          input={goalInput}
+          plan={currentPlan}
+          onBack={() => setShowPreviewPanel(false)}
+        />
+      )}
     </div>
   );
 }
