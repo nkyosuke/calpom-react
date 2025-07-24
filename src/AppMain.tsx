@@ -611,11 +611,18 @@ function AppMain() {
         </div>
       )}
       {showPreviewPanel && (
-        <GeminiPlanPreviewPanel
-          input={goalInput}
-          plan={currentPlan}
-          onBack={() => setShowPreviewPanel(false)}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div
+            className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GeminiPlanPreviewPanel
+              input={goalInput}
+              plan={currentPlan}
+              onBack={() => setShowPreviewPanel(false)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

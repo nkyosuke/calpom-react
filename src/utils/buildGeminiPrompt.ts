@@ -6,27 +6,27 @@ export function buildGeminiPromptJSON(input: GoalPlanInput) {
   const targetFinish = format(subDays(new Date(deadline), 7), "yyyy-MM-dd");
 
   return `
-You are a professional study‑plan coach.
+あなたはプロの学習計画コーチです。
 
-## Goal
+## 目標
 ${goal}
 
-## Deadline
-${deadline} (complete by ${targetFinish})
+## 締切
+${deadline}（${targetFinish}までに完了）
 
-## Daily time
-Weekday: ${weekdayHours}h  /  Weekend: ${weekendHours}h
+## 1日の学習時間
+平日: ${weekdayHours}時間 / 週末: ${weekendHours}時間
 
-## Known tasks
-${roughTasks || "None"}
+## 既知のタスク
+${roughTasks || "なし"}
 
-## Requirements
-- Plan period: ${today} – ${targetFinish}
-- Split tasks into 30‑minute blocks.
-- Add or split tasks as needed, but keep each day's total within the daily limit.
-- Define **at least two milestones** with clear success metrics.
-- Avoid vague wording; use concrete numbers, pages, question ranges.
-- Output **ONLY** the following JSON, nothing else:
+## 要件
+- 計画期間: ${today} から ${targetFinish} まで
+- タスクは30分単位に分割してください。
+- 必要に応じてタスクを追加・分割してください。ただし、1日の合計時間は1日の制限内に収めてください。
+- **少なくとも2つのマイルストーン**を設定し、成功の基準を明確にしてください。
+- 曖昧な表現は避け、具体的な数字、ページ数、問題範囲を使ってください。
+- 以下のJSON形式のみを出力してください。その他の出力は禁止です。
 
 {
   "milestones": [

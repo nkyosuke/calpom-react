@@ -17,10 +17,11 @@ export const GeminiPlanPreviewPanel: React.FC<GeminiPlanPreviewPanelProps> = ({
   console.log("📦 受け取ったplan:", plan); // ← ここ
 
   if (!plan || !plan.schedule) {
-    return <div>プランが存在しません。</div>; // safety fallback
+    return <div>プラン作成中...</div>; // safety fallback
   }
   return (
-    <div className="p-4 border rounded shadow bg-white max-h-[70vh] overflow-y-auto">
+    /*<div className="p-4 border rounded shadow bg-white max-h-[70vh] overflow-y-auto">*/
+    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl">
       <h2 className="text-xl font-bold mb-2">学習計画プレビュー</h2>
 
       <div className="mb-4">
@@ -47,14 +48,29 @@ export const GeminiPlanPreviewPanel: React.FC<GeminiPlanPreviewPanelProps> = ({
       </ul>
 
       <h3 className="font-semibold mb-1">日ごとのスケジュール</h3>
-      <ul className="space-y-2">
+      <ul className="space-y-6">
         {plan.schedule.map((day, i) => (
-          <li key={i} className="border rounded p-2">
-            <strong>{day.date}</strong>
-            <ul className="ml-4 list-disc list-inside">
+          <li key={i}>
+            <div className="text-lg font-semibold mb-2 text-blue-700">
+              {day.date}
+            </div>
+            <ul className="space-y-3">
               {day.tasks.map((task, j) => (
-                <li key={j}>
-                  {task.title}（{task.duration}分）
+                <li
+                  key={j}
+                  className="rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 p-4 shadow-sm"
+                >
+                  <div className="text-base font-medium text-gray-900 dark:text-gray-100">
+                    {task.title}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    ⏱ {task.minutes ?? 0}分
+                  </div>
+                  {task.note && (
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-2 border-t border-gray-200 dark:border-zinc-700 pt-2">
+                      {task.note}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
