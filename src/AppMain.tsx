@@ -5,6 +5,7 @@ import { saveCalendarEvent } from "./event/saveCalendarEvent";
 import { deleteCalendarEvent } from "./event/deleteCalendarEvent";
 import { updateCalendarEvent } from "./event/updateCalendarEvent";
 import { getCalendarEvents } from "./event/getCalendarEvents";
+import { saveGeminiPlanToFirestore } from "./event/saveGeminiPlanToFirestore";
 import { getAuth, onAuthStateChanged, User, signOut } from "firebase/auth";
 import { auth } from "./firebase";
 import SignIn from "./auth/SignIn";
@@ -26,7 +27,6 @@ import GoalPlanPanel from "./components/GoalPlanPanel";
 import { AdRewardPanel } from "./components/AdRewardPanel";
 import { GeminiPlanPreviewPanel } from "./components/GeminiPlanPreviewPanel";
 import { parseISO } from "date-fns";
-import { v4 as uuid } from "uuid";
 import { toast } from "react-hot-toast";
 import {
   generatePlanWithGemini,
@@ -34,17 +34,7 @@ import {
   type GeminiPlan,
 } from "./lib/generatePlanWithGemini";
 import { AdBanner } from "./components/AdBanner";
-import { CalendarEvent } from "../types/calendar";
-
-/*type CalendarEvent = {
-  id: string;
-  title: string;
-  start: string;
-  end: string;
-  allDay?: boolean;
-  note?: string; // ← 追加
-  color?: string; // ← 追加
-};*/
+import { type CalendarEvent } from "../types/CalendarEvent";
 
 function AppMain() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -324,20 +314,7 @@ function AppMain() {
     setGoalPanelOpen(false);
     setShowAdPanel(true);
   };
-  /*const handleGenerate = useCallback(async (input: GenerateInput) => {
-    setGenerating(true);
-    try {
-      console.log("handleGenerate start");
-      console.log("📥 input内容", input);
-      const plan = await generatePlanWithGemini(input);
-      console.log("🔥 Geminiから返ってきたplan:", plan);
-      setCurrentPlan(plan); // 生成した計画は状態に保持してプレビューへ渡す
-    } catch (e: any) {
-      toast.error(e.message ?? "計画生成に失敗しました");
-    } finally {
-      setGenerating(false);
-    }
-  }, []);*/
+
   const handleGenerate = useCallback(async (input: GenerateInput) => {
     setGenerating(true);
     try {
@@ -364,20 +341,16 @@ function AppMain() {
     setShowPreviewPanel(true);
   };
 
-  /*const handleAdRewardConfirmed = async () => {
-    setShowAdPanel(false);
-    setGenerating(true);
+  const handleSave = async (plan: GeminiPlan) => {
     try {
-      const plan = await generatePlanWithGemini(goalInput!);
-      console.log("🔥 Geminiから返ってきたplan:", plan);
-      setCurrentPlan(plan);
-      setShowPreviewPanel(true);
-    } catch (e: any) {
-      toast.error(e.message ?? "計画生成に失敗しました");
-    } finally {
-      setGenerating(false);
+      await saveGeminiPlanToFirestore(plan); // Firestore保存関数
+      alert("保存成功");
+      // 必要なら状態リセットや画面遷移も
+    } catch (err) {
+      console.error("保存エラー:", err);
+      alert("保存失敗");
     }
-  };*/
+  };
 
   useEffect(() => {
     // 画面サイズが変更されたときにカレンダーをリサイズ
@@ -622,6 +595,7 @@ function AppMain() {
             <GeminiPlanPreviewPanel
               input={goalInput}
               plan={currentPlan}
+              onSave={handleSave}
               onBack={() => setShowPreviewPanel(false)}
             />
           </div>

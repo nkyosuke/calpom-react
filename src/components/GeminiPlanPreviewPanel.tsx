@@ -4,7 +4,7 @@ import { GeminiPlan, GenerateInput } from "../lib/generatePlanWithGemini";
 interface GeminiPlanPreviewPanelProps {
   input: GenerateInput;
   plan: GeminiPlan;
-  onSave: () => void;
+  onSave: (plan: GeminiPlan) => void;
   onBack?: () => void;
 }
 

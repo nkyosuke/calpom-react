@@ -1,17 +1,6 @@
 import { db } from "../firebase";
 import { doc, updateDoc } from "firebase/firestore";
-import { CalendarEvent } from "../types/calendar";
-
-/** Firestore に保存しているイベント型 */
-/*export interface CalendarEvent {
-  id: string;
-  uid: string; // ← 追加。所属ユーザーの UID
-  title: string;
-  start: string;
-  end: string;
-  note?: string; // ← 追加
-  color?: string; // ← 追加
-}*/
+import { type CalendarEvent } from "../types/CalendarEvent";
 
 /**
  * カレンダーイベントを更新

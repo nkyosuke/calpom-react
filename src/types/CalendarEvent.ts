@@ -7,5 +7,6 @@ export interface CalendarEvent {
   end: string;
   allDay?: boolean;
   note?: string;
-  color?: string; // Geminiかユーザー作成かで色分け用
+  color?: string;
+  source?: "user" | "gemini";
 }

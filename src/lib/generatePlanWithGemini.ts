@@ -82,29 +82,6 @@ async function fetchFromFunctions(input: GenerateInput): Promise<GeminiPlan> {
 }
 
 /* ---------- クライアントから直接Gemini API呼び出し ---------- */
-/*async function fetchFromClient(input: GenerateInput): Promise<GeminiPlan> {
-  const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
-  if (!apiKey) throw new Error("Gemini APIキーが設定されていません");
-
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-  const prompt = buildGeminiPromptJSON(input);
-
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  console.log("📩 Geminiからの生レスポンス:", response);
-  const text = response.text();
-
-  try {
-    const plan = JSON.parse(text);
-    if (!isGeminiPlan(plan)) throw new Error();
-    return plan;
-  } catch {
-    throw new Error("Gemini のレスポンスがパースできませんでした");
-  }
-}*/
-
-/* ---------- クライアントから直接Gemini API呼び出し ---------- */
 async function fetchFromClient(input: GenerateInput): Promise<GeminiPlan> {
   const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
   if (!apiKey) throw new Error("Gemini APIキーが設定されていません");
