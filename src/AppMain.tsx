@@ -34,14 +34,17 @@ import {
   type GeminiPlan,
 } from "./lib/generatePlanWithGemini";
 import { AdBanner } from "./components/AdBanner";
+import { CalendarEvent } from "../types/calendar";
 
-type CalendarEvent = {
+/*type CalendarEvent = {
   id: string;
   title: string;
   start: string;
   end: string;
   allDay?: boolean;
-};
+  note?: string; // ← 追加
+  color?: string; // ← 追加
+};*/
 
 function AppMain() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
