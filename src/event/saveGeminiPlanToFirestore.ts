@@ -20,6 +20,8 @@ export const saveGeminiPlanToFirestore = async (
   onSuccess?: () => void,
   onError?: (error: any) => void
 ) => {
+  console.log("saveGeminiPlanToFirestore uid:", uid);
+  console.log("saveGeminiPlanToFirestore plan:", plan);
   if (!uid || !plan || !plan.schedule) return;
   try {
     const batchPromises = plan.schedule.flatMap((day) => {

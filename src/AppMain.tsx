@@ -343,7 +343,7 @@ function AppMain() {
 
   const handleSave = async (plan: GeminiPlan) => {
     try {
-      await saveGeminiPlanToFirestore(plan); // Firestore保存関数
+      await saveGeminiPlanToFirestore(user.uid, plan); // Firestore保存関数
       alert("保存成功");
       // 必要なら状態リセットや画面遷移も
     } catch (err) {
@@ -597,6 +597,7 @@ function AppMain() {
               plan={currentPlan}
               onSave={handleSave}
               onBack={() => setShowPreviewPanel(false)}
+              uid={user.uid}
             />
           </div>
         </div>

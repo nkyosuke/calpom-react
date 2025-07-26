@@ -6,6 +6,7 @@ interface GeminiPlanPreviewPanelProps {
   plan: GeminiPlan;
   onSave: (plan: GeminiPlan) => void;
   onBack?: () => void;
+  uid: string;
 }
 
 export const GeminiPlanPreviewPanel: React.FC<GeminiPlanPreviewPanelProps> = ({
@@ -13,6 +14,7 @@ export const GeminiPlanPreviewPanel: React.FC<GeminiPlanPreviewPanelProps> = ({
   plan,
   onSave,
   onBack,
+  uid,
 }) => {
   console.log("📦 受け取ったplan:", plan); // ← ここ
 
@@ -88,7 +90,7 @@ export const GeminiPlanPreviewPanel: React.FC<GeminiPlanPreviewPanelProps> = ({
           </button>
         )}
         <button
-          onClick={onSave}
+          onClick={() => onSave(plan)}
           className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
         >
           保存する
