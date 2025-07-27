@@ -11,7 +11,7 @@ function isWeekendOrHoliday(dateStr: string): boolean {
 }
 
 function formatTime(date: Date): string {
-  return date.toISOString().slice(0, 16); // yyyy-mm-ddThh:mm
+  return date.toISOString();
 }
 
 export const saveGeminiPlanToFirestore = async (
