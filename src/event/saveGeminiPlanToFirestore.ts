@@ -14,6 +14,12 @@ function formatTime(date: Date): string {
   return date.toISOString();
 }
 
+const utcToJst = (utcString: string) => {
+  const date = new Date(utcString);
+  // JSTのISO 8601文字列を返す
+  return date.toISOString().replace("Z", "+09:00");
+};
+
 export const saveGeminiPlanToFirestore = async (
   uid: string,
   plan: GeminiPlan,
@@ -41,8 +47,8 @@ export const saveGeminiPlanToFirestore = async (
           id: eventId,
           uid,
           title: task.title,
-          start: formatTime(start),
-          end: formatTime(end),
+          start: utcToJst(formatTime(start)),
+          end: utcToJst(formatTime(end)),
           color: "#08db13ff",
           note: task.note,
           source: "gemini",
