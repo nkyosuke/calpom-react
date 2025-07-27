@@ -218,7 +218,8 @@ function AppMain() {
     title: string,
     date: string,
     start: string,
-    end: string
+    end: string,
+    note: string
   ) => {
     if (!user) return;
     if (editingEvent) {
@@ -228,6 +229,7 @@ function AppMain() {
         title,
         start: `${date}T${start}`,
         end: `${date}T${end}`,
+        note,
       };
       await saveCalendarEvent({ ...updated, uid: user.uid });
       setEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
@@ -238,6 +240,7 @@ function AppMain() {
         title,
         start: `${date}T${start}`,
         end: `${date}T${end}`,
+        note,
       };
       await saveCalendarEvent({ ...newEvent, uid: user.uid });
       setEvents((prev) => [...prev, newEvent]);
