@@ -7,6 +7,7 @@ export type EditingData = {
   start: string; // HH:mm
   end: string; // HH:mm
   note?: string;
+  isMilestone?: boolean;
 };
 
 type Props = {
@@ -18,7 +19,8 @@ type Props = {
     date: string,
     start: string,
     end: string,
-    note?: string
+    note?: string,
+    isMilestone?: boolean
   ) => void;
   /** 更新モード時のみ利用。渡されていれば「削除」ボタンを表示 */
   onDelete?: (editing: EditingData) => void;
@@ -41,7 +43,7 @@ const EventPanel: React.FC<Props> = ({
   const [start, setStart] = useState("12:00");
   const [end, setEnd] = useState("13:00");
   const [note, setNote] = useState("");
-
+  const [isMilestone, setIsMilestone] = useState(false);
   /* 編集モードなら初期値を注入 */
   useEffect(() => {
     if (editing) {
@@ -50,12 +52,14 @@ const EventPanel: React.FC<Props> = ({
       setStart(editing.start);
       setEnd(editing.end);
       setNote(editing.note || "");
+      setIsMilestone(editing.isMilestone ?? false);
     } else {
       setTitle("");
       setDate(defaultDate);
       setStart("12:00");
       setEnd("13:00");
       setNote("");
+      setIsMilestone(false);
     }
   }, [editing, defaultDate]);
 
@@ -100,6 +104,15 @@ const EventPanel: React.FC<Props> = ({
             className="border p-2 w-full mb-3 bg-gray-100 dark:bg-gray-800"
           />
 
+          <label className="flex items-center space-x-2 text-sm mb-2">
+            <input
+              type="checkbox"
+              checked={isMilestone}
+              onChange={(e) => setIsMilestone(e.target.checked)}
+            />
+            <span>マイルストーンとして登録</span>
+          </label>
+
           <div className="flex gap-2">
             <div className="flex-1">
               <label className="text-sm">開始</label>
@@ -130,7 +143,7 @@ const EventPanel: React.FC<Props> = ({
 
           {/* ------- アクション ------- */}
           <button
-            onClick={() => onSave(title, date, start, end, note)}
+            onClick={() => onSave(title, date, start, end, note, isMilestone)}
             disabled={title.trim() === ""}
             className={`w-full mt-5 py-2 rounded ${
               title.trim()

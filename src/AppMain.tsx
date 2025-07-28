@@ -220,7 +220,8 @@ function AppMain() {
     date: string,
     start: string,
     end: string,
-    note: string
+    note: string,
+    allDay: boolean
   ) => {
     if (!user) return;
     if (editingEvent) {
@@ -231,6 +232,7 @@ function AppMain() {
         start: `${date}T${start}`,
         end: `${date}T${end}`,
         note,
+        allDay,
       };
       await saveCalendarEvent({ ...updated, uid: user.uid });
       setEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
@@ -242,6 +244,7 @@ function AppMain() {
         start: `${date}T${start}`,
         end: `${date}T${end}`,
         note,
+        allDay,
       };
       await saveCalendarEvent({ ...newEvent, uid: user.uid });
       setEvents((prev) => [...prev, newEvent]);
@@ -443,7 +446,7 @@ function AppMain() {
               uid: user!.uid,
             });
           }}
-          eventContent={(arg) => {
+          /*eventContent={(arg) => {
             const isHoliday = arg.event.id.startsWith("holiday-");
             const common: React.CSSProperties = {
               color: isHoliday ? "red" : undefined,
@@ -452,6 +455,32 @@ function AppMain() {
               textOverflow: "ellipsis",
               fontWeight: isHoliday ? "bold" : undefined,
             };
+            return (
+              <div style={common}>
+                {arg.view.type === "dayGridMonth" ? (
+                  arg.event.title
+                ) : (
+                  <b>{arg.event.title}</b>
+                )}
+              </div>
+            );
+          }}*/
+          eventContent={(arg) => {
+            const isHoliday = arg.event.id.startsWith("holiday-");
+            const isMilestone = arg.event.extendedProps?.isMilestone === true;
+
+            const common: React.CSSProperties = {
+              color: isHoliday ? "red" : isMilestone ? "white" : undefined,
+              backgroundColor: isMilestone ? "#007bff" : undefined, // マイルストーンの背景色
+              padding: isMilestone ? "2px 4px" : undefined,
+              borderRadius: isMilestone ? "4px" : undefined,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              fontWeight: isHoliday || isMilestone ? "bold" : undefined,
+              fontSize: "0.85em",
+            };
+
             return (
               <div style={common}>
                 {arg.view.type === "dayGridMonth" ? (

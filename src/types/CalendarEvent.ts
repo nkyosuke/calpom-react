@@ -9,4 +9,5 @@ export interface CalendarEvent {
   note?: string;
   color?: string;
   source?: "user" | "gemini";
+  isMilestone?: boolean; 
 }
