@@ -182,6 +182,7 @@ function AppMain() {
         date: toDateStr(ev.start),
         start: toTimeStr(ev.start),
         end: toTimeStr(ev.end),
+        note: ev.note,
       });
       openEventPanelOnly(); // ← 他パネルを閉じ、EventPanel を開く
       return;
