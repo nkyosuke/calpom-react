@@ -347,13 +347,17 @@ function AppMain() {
     handleGenerate(goalInput!); // 生成を開始
     setShowPreviewPanel(true);
   };
+  const fetchEvents = async () => {
+    if (!user) return;
+    const events = await getCalendarEvents(user.uid);
+    setEvents(events); // ← useState に格納されてるイベント更新
+  };
 
   const handleSave = async (plan: GeminiPlan) => {
     try {
       await saveGeminiPlanToFirestore(user.uid, plan); // Firestore保存関数
       await fetchEvents(); // 🔄 カレンダー再読み込み
-      closePanel();
-      // 必要なら状態リセットや画面遷移も
+      setShowPreviewPanel(false);
     } catch (err) {
       console.error("保存エラー:", err);
       alert("保存失敗");
