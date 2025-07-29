@@ -351,7 +351,8 @@ function AppMain() {
   const handleSave = async (plan: GeminiPlan) => {
     try {
       await saveGeminiPlanToFirestore(user.uid, plan); // Firestore保存関数
-      alert("保存成功");
+      await fetchEvents(); // 🔄 カレンダー再読み込み
+      closePanel();
       // 必要なら状態リセットや画面遷移も
     } catch (err) {
       console.error("保存エラー:", err);
