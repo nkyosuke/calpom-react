@@ -471,7 +471,7 @@ function AppMain() {
 
             const common: React.CSSProperties = {
               color: isHoliday ? "red" : isMilestone ? "white" : undefined,
-              backgroundColor: isMilestone ? "#007bff" : undefined, // マイルストーンの背景色
+              //backgroundColor: isMilestone ? "#007bff" : undefined, // マイルストーンの背景色
               padding: isMilestone ? "2px 4px" : undefined,
               borderRadius: isMilestone ? "4px" : undefined,
               whiteSpace: "nowrap",

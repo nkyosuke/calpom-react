@@ -104,14 +104,14 @@ const EventPanel: React.FC<Props> = ({
             className="border p-2 w-full mb-3 bg-gray-100 dark:bg-gray-800"
           />
 
-          <label className="flex items-center space-x-2 text-sm mb-2">
+          {/*<label className="flex items-center space-x-2 text-sm mb-2">
             <input
               type="checkbox"
               checked={isMilestone}
               onChange={(e) => setIsMilestone(e.target.checked)}
             />
             <span>マイルストーンとして登録</span>
-          </label>
+          </label>*/}
 
           <div className="flex gap-2">
             <div className="flex-1">
