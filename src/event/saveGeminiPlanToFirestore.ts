@@ -28,19 +28,22 @@ export const saveGeminiPlanToFirestore = async (
   console.log("saveGeminiPlanToFirestore uid:", uid);
   console.log("saveGeminiPlanToFirestore plan:", plan);
   if (!uid || !plan || !plan.schedule) return;
+
   try {
-    const batchPromises = plan.schedule.flatMap((day) => {
+    const batchPromises: Promise<void>[] = [];
+
+    // 通常のタスクイベントを登録
+    plan.schedule.forEach((day) => {
       const baseStartHour = isWeekendOrHoliday(day.date) ? 10 : 20;
       let current = new Date(
         `${day.date}T${String(baseStartHour).padStart(2, "0")}:00`
       );
 
-      return day.tasks.map((task) => {
+      day.tasks.forEach((task) => {
         const eventId = uuidv4();
-
         const start = new Date(current);
         const end = new Date(current.getTime() + task.minutes * 60000);
-        current = new Date(end); // 次のタスク開始時間を更新
+        current = new Date(end);
 
         const newEvent: CalendarEvent = {
           id: eventId,
@@ -53,12 +56,38 @@ export const saveGeminiPlanToFirestore = async (
           source: "gemini",
         };
 
-        return setDoc(
-          doc(collection(db, "users", uid, "events"), eventId),
-          newEvent
+        batchPromises.push(
+          setDoc(doc(collection(db, "users", uid, "events"), eventId), newEvent)
         );
       });
     });
+
+    // 🎯 マイルストーンも登録
+    if (plan.milestones && plan.milestones.length > 0) {
+      plan.milestones.forEach((milestone) => {
+        const eventId = uuidv4();
+
+        const milestoneEvent: CalendarEvent = {
+          id: eventId,
+          uid,
+          title: milestone.title,
+          start: `${milestone.date}T00:00`,
+          end: `${milestone.date}T23:59`,
+          note: milestone.criteria,
+          allDay: true,
+          color: "#f5b042", // オレンジ系（お好みで変更可）
+          source: "gemini",
+          isMilestone: true,
+        };
+
+        batchPromises.push(
+          setDoc(
+            doc(collection(db, "users", uid, "events"), eventId),
+            milestoneEvent
+          )
+        );
+      });
+    }
 
     await Promise.all(batchPromises);
     if (onSuccess) onSuccess(); // ✅ 成功時コールバック
