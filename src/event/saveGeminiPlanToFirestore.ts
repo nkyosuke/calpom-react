@@ -10,15 +10,14 @@ function isWeekendOrHoliday(dateStr: string): boolean {
   return day === 0 || day === 6;
 }
 
-function formatTime(date: Date): string {
-  return date.toISOString();
+function formatDateTimeWithoutSeconds(date: Date): string {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  const hh = String(date.getHours()).padStart(2, "0");
+  const min = String(date.getMinutes()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
 }
-
-const utcToJst = (utcString: string) => {
-  const date = new Date(utcString);
-  // JSTのISO 8601文字列を返す
-  return date.toISOString().replace("Z", "+09:00");
-};
 
 export const saveGeminiPlanToFirestore = async (
   uid: string,
@@ -47,8 +46,8 @@ export const saveGeminiPlanToFirestore = async (
           id: eventId,
           uid,
           title: task.title,
-          start: utcToJst(formatTime(start)),
-          end: utcToJst(formatTime(end)),
+          start: formatDateTimeWithoutSeconds(start),
+          end: formatDateTimeWithoutSeconds(end),
           color: "#08db13ff",
           note: task.note,
           source: "gemini",
