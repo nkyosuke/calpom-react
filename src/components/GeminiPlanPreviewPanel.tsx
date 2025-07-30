@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { GeminiPlan, GenerateInput } from "../lib/generatePlanWithGemini";
 
 interface GeminiPlanPreviewPanelProps {
@@ -9,6 +9,30 @@ interface GeminiPlanPreviewPanelProps {
   uid: string;
 }
 
+const applyCustomTimesToSchedule = (
+  plan: GeminiPlan,
+  weekdayTime: string,
+  holidayTime: string
+): GeminiPlan => {
+  const updatedSchedule = plan.schedule.map((day) => {
+    const date = day.date;
+    const dayOfWeek = new Date(date).getDay(); // 0 = 日曜, 6 = 土曜
+
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const time = isWeekend ? holidayTime : weekdayTime;
+
+    return {
+      ...day,
+      start: `${date}T${time}`, // ← FullCalendar 用にも使える
+    };
+  });
+
+  return {
+    ...plan,
+    schedule: updatedSchedule,
+  };
+};
+
 export const GeminiPlanPreviewPanel: React.FC<GeminiPlanPreviewPanelProps> = ({
   input,
   plan,
@@ -16,6 +40,8 @@ export const GeminiPlanPreviewPanel: React.FC<GeminiPlanPreviewPanelProps> = ({
   onBack,
   uid,
 }) => {
+  const [weekdayTime, setWeekdayTime] = useState("20:00");
+  const [holidayTime, setHolidayTime] = useState("10:00");
   console.log("📦 受け取ったplan:", plan); // ← ここ
 
   if (!plan || !plan.schedule) {
@@ -48,6 +74,25 @@ export const GeminiPlanPreviewPanel: React.FC<GeminiPlanPreviewPanelProps> = ({
           </li>
         ))}
       </ul>
+
+      <div className="flex flex-col gap-4">
+        <div>
+          <label>平日の開始時間</label>
+          <input
+            type="time"
+            value={weekdayTime}
+            onChange={(e) => setWeekdayTime(e.target.value)}
+          />
+        </div>
+        <div>
+          <label>休日の開始時間</label>
+          <input
+            type="time"
+            value={holidayTime}
+            onChange={(e) => setHolidayTime(e.target.value)}
+          />
+        </div>
+      </div>
 
       <h3 className="font-semibold mb-1">日ごとのスケジュール</h3>
       <ul className="space-y-6">
@@ -90,7 +135,14 @@ export const GeminiPlanPreviewPanel: React.FC<GeminiPlanPreviewPanelProps> = ({
           </button>
         )}
         <button
-          onClick={() => onSave(plan)}
+          onClick={() => {
+            const updatedPlan = applyCustomTimesToSchedule(
+              plan,
+              weekdayTime,
+              holidayTime
+            );
+            onSave(updatedPlan);
+          }}
           className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
         >
           保存する
