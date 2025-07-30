@@ -269,7 +269,16 @@ function AppMain() {
     }
 
     // 1. ローカル state を更新
-    setEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
+    setEvents((prev) =>
+      prev.map((e) =>
+        e.id === updated.id
+          ? {
+              ...e, // 元の色などを保持
+              ...updated, // start, end, title を上書き
+            }
+          : e
+      )
+    );
 
     // 2. Firestore を更新
     try {
