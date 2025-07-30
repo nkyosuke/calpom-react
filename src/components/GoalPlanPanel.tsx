@@ -146,15 +146,20 @@ const GoalPlanPanel: React.FC<Props> = ({
 
             {/* ボタン */}
             <button
-              onClick={() =>
+              onClick={() => {
+                const error = validate();
+                if (error) {
+                  setError(error);
+                  return;
+                }
                 onNext({
                   goal,
                   deadline,
                   roughTasks: notes,
                   weekdayHours,
                   weekendHours,
-                })
-              }
+                });
+              }}
               disabled={!goal.trim() || !deadline}
               className={`w-full py-2 rounded ${
                 goal.trim() && deadline
