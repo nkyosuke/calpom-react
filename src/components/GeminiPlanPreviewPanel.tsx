@@ -23,6 +23,7 @@ const applyCustomTimesToSchedule = (
 
     return {
       ...day,
+      startTime: time,
       start: `${date}T${time}`, // ← FullCalendar 用にも使える
     };
   });

@@ -34,18 +34,18 @@ export const saveGeminiPlanToFirestore = async (
 
     // 通常のタスクイベントを登録
     plan.schedule.forEach((day) => {
-      const baseStartHour = isWeekendOrHoliday(day.date) ? 10 : 20;
+      /*const baseStartHour = isWeekendOrHoliday(day.date) ? 10 : 20;
       let current = new Date(
         `${day.date}T${String(baseStartHour).padStart(2, "0")}:00`
-      );
+      );*/
       /*console.log(
         "保存前のstart",
         day.date,
         day.startTime,
-        new Date(`${startDate}T${startTime}`)
+        new Date(`${day.date}T${day.startTime}`)
       );*/
 
-      //let current = new Date(`${day.date}T${day.startTime}`);
+      let current = new Date(`${day.date}T${day.startTime}`);
 
       day.tasks.forEach((task) => {
         const eventId = uuidv4();
