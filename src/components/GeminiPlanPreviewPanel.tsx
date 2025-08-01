@@ -50,7 +50,7 @@ export const GeminiPlanPreviewPanel: React.FC<GeminiPlanPreviewPanelProps> = ({
   }
   return (
     /*<div className="p-4 border rounded shadow bg-white max-h-[70vh] overflow-y-auto">*/
-    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl">
+    /*<div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl">
       <h2 className="text-xl font-bold mb-2">学習計画プレビュー</h2>
 
       <div className="mb-4">
@@ -148,6 +148,104 @@ export const GeminiPlanPreviewPanel: React.FC<GeminiPlanPreviewPanelProps> = ({
         >
           保存する
         </button>
+      </div>*/
+    <div className="bg-blue-50 min-h-screen py-10 flex justify-center">
+      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-3xl">
+        <h2 className="text-2xl font-bold text-blue-800 mb-4">
+          📘 学習計画プレビュー
+        </h2>
+
+        <div className="mb-6 bg-blue-100 rounded-lg p-4">
+          <p>
+            <strong>🎯 目標:</strong> {input.goal}
+          </p>
+          <p>
+            <strong>📅 締切:</strong> {input.deadline}
+          </p>
+          <p>
+            <strong>📝 参考タスク:</strong> {input.roughTasks}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label className="block font-medium text-blue-700 mb-1">
+              平日の開始時間
+            </label>
+            <input
+              type="time"
+              value={weekdayTime}
+              onChange={(e) => setWeekdayTime(e.target.value)}
+              className="w-full p-2 border border-blue-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+            />
+          </div>
+          <div>
+            <label className="block font-medium text-blue-700 mb-1">
+              休日の開始時間
+            </label>
+            <input
+              type="time"
+              value={holidayTime}
+              onChange={(e) => setHolidayTime(e.target.value)}
+              className="w-full p-2 border border-blue-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+            />
+          </div>
+        </div>
+        <h3 className="text-lg font-semibold text-blue-800 mb-2">
+          📆 日ごとのスケジュール
+        </h3>
+        <ul className="space-y-4">
+          {plan.schedule.map((day, i) => (
+            <li key={i}>
+              <div className="text-md font-semibold text-blue-600 mb-1">
+                {day.date}
+              </div>
+              <ul className="space-y-3">
+                {day.tasks.map((task, j) => (
+                  <li
+                    key={j}
+                    className="rounded-lg border border-blue-100 bg-blue-50 p-3 shadow-sm"
+                  >
+                    <div className="font-medium text-gray-800">
+                      {task.title}
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1">
+                      ⏱ {task.minutes ?? 0}分
+                    </div>
+                    {task.note && (
+                      <div className="text-sm text-gray-600 mt-2 border-t pt-2 border-blue-200">
+                        {task.note}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-8 flex justify-end space-x-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+            >
+              戻る
+            </button>
+          )}
+          <button
+            onClick={() => {
+              const updatedPlan = applyCustomTimesToSchedule(
+                plan,
+                weekdayTime,
+                holidayTime
+              );
+              onSave(updatedPlan);
+            }}
+            className="px-6 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 shadow-md"
+          >
+            保存する
+          </button>
+        </div>
       </div>
     </div>
   );
